@@ -23,7 +23,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.util.Log;
+
+import com.better.wakelock.Logger.LogLevel;
 
 /**
  * Utility class to pass {@link WakeLock} objects with intents. It contains a
@@ -34,27 +35,30 @@ import android.util.Log;
 public class WakeLockManager {
     public static final String EXTRA_WAKELOCK_TAG = "WakeLockManager.EXTRA_WAKELOCK_TAG";
     private static final String TAG = "WakeLockManager";
-    private boolean debug;
+    private final Logger log;
 
     private static WakeLockManager sInstance;
 
-    private Map<String, WakeLock> map;
-    private PowerManager pm;
+    private final Map<String, WakeLock> map;
+    private final PowerManager pm;
 
     public static WakeLockManager getWakeLockManager() {
         if (sInstance == null) throw new RuntimeException(TAG + " was not initialized");
         return sInstance;
     }
 
-    public static void init(Context context, boolean debug) {
+    public static void init(Context context, Logger logger, boolean debug) {
         if (sInstance != null) throw new RuntimeException("Attempt to reinitalize a " + TAG);
-        sInstance = new WakeLockManager(context, debug);
+        sInstance = new WakeLockManager(context, logger, debug);
     }
 
-    private WakeLockManager(Context context, boolean debug) {
+    private WakeLockManager(Context context, Logger logger, boolean debug) {
         pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         map = new HashMap<String, PowerManager.WakeLock>();
-        this.debug = debug;
+        log = logger;
+        if (debug && logger.getLevel(this.getClass()) == null) {
+            logger.setLogLevel(getClass(), LogLevel.DEBUG);
+        }
     }
 
     public void acquirePartialWakeLock(String tag) {
@@ -62,15 +66,13 @@ public class WakeLockManager {
             WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, tag);
             wl.acquire();
             map.put(tag, wl);
-            if (debug) Log.d(TAG, "Wakelock " + tag + " was acquired");
+            log.d("Wakelock " + tag + " was acquired");
         } else {
             WakeLock wl = map.get(tag);
             if (wl.isHeld()) {
-                Log.w(TAG, "Wakelock " + tag + " is already held");
-            } else {
-                throw new RuntimeException(
-                        "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
-            }
+                log.d("Wakelock " + tag + " is already held");
+            } else throw new RuntimeException(
+                    "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
         }
     }
 
@@ -103,14 +105,14 @@ public class WakeLockManager {
             if (wl.isHeld()) {
                 wl.release();
                 map.remove(tag);
-                if (debug) Log.d(TAG, "Wakelock " + tag + " was released");
+                log.d("Wakelock " + tag + " was released");
             } else {
                 map.remove(tag);
-                Log.w(TAG, "Wakelock " + tag + " was already released!");
+                log.d("Wakelock " + tag + " was already released!");
             }
 
         } else {
-            Log.w(TAG, "There is no wakelock " + tag + " known to me");
+            log.w("There is no wakelock " + tag + " known to me");
         }
     }
 
