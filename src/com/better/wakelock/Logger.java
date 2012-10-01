@@ -1,6 +1,8 @@
 package com.better.wakelock;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.util.Log;
@@ -10,7 +12,20 @@ public class Logger {
     private static final String TAG = Logger.class.getSimpleName();
 
     public enum LogLevel {
-        NONE, DEBUG, INFO
+        NONE, DEBUG, INFO, WARN, ERR
+    }
+
+    /**
+     * Log writing strategy
+     * 
+     * @author Yuriy
+     * 
+     */
+    public interface LogWriter {
+
+        public void write(LogLevel level, String tag, String message);
+
+        public void write(LogLevel level, String tag, String message, Throwable e);
     }
 
     private final Map<String, LogLevel> mLogLevels;
@@ -31,14 +46,26 @@ public class Logger {
         return sInstance;
     }
 
+    private final List<LogWriter> writers;
+
     private Logger() {
         mLogLevels = new HashMap<String, Logger.LogLevel>();
+        writers = new ArrayList<LogWriter>();
+    }
+
+    public void addLogWriter(LogWriter logWriter) {
+        writers.add(logWriter);
+    }
+
+    public void removeLogWriter(LogWriter logWriter) {
+        writers.remove(logWriter);
     }
 
     public void setLogLevel(Class<?> logClass, LogLevel logLevel) {
         String simpleName = logClass.getSimpleName();
         mLogLevels.put(simpleName, logLevel);
-        Log.d(TAG, "Adding " + simpleName + " with LogLevel " + logLevel.toString());
+        String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
+        Log.d(TAG, string);
     }
 
     public LogLevel getLevel(Class<?> logClass) {
@@ -59,26 +86,16 @@ public class Logger {
         if (logLevel == null) {
             logLevel = LogLevel.DEBUG;
             mLogLevels.put(logClass, logLevel);
-            Log.w(TAG, "no LogLevel was found for " + logClass);
-            Log.d(TAG, "Adding " + logClass + " with LogLevel " + logLevel.toString());
+            String string = "no LogLevel was found for " + logClass;
+            Log.w(TAG, string);
+            String string2 = "Adding " + logClass + " with LogLevel " + logLevel.toString();
+            Log.d(TAG, string2);
         }
 
-        switch (logLevel) {
-        case NONE:
-            // do nothing
-            break;
-
-        case DEBUG:
-            Log.d(formatTag(), message);
-            break;
-
-        case INFO:
-            Log.i(formatTag(), message);
-            break;
-
-        default:
-            throw new RuntimeException("all loglevels should be in the switch!");
+        for (LogWriter writer : writers) {
+            writer.write(LogLevel.DEBUG, formatTag(), message);
         }
+
     }
 
     /**
@@ -86,7 +103,9 @@ public class Logger {
      */
     public void w(String message) {
         String tag = formatTag();
-        Log.w(tag, message);
+        for (LogWriter writer : writers) {
+            writer.write(LogLevel.WARN, tag, message);
+        }
     }
 
     /**
@@ -94,12 +113,16 @@ public class Logger {
      */
     public void e(String message) {
         String tag = formatTag();
-        Log.e(tag, message);
+        for (LogWriter writer : writers) {
+            writer.write(LogLevel.ERR, tag, message);
+        }
     }
 
     public void e(String message, Throwable e) {
-        String string = formatTag();
-        Log.e(string, message, e);
+        String tag = formatTag();
+        for (LogWriter writer : writers) {
+            writer.write(LogLevel.ERR, tag, message, e);
+        }
     }
 
     private String formatTag() {
