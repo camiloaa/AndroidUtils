@@ -54,7 +54,6 @@ public class Logger {
         StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
         String fileName = caller.getFileName();
         String logClass = fileName.substring(0, fileName.length() - 5);
-        String methodName = caller.getMethodName();
 
         LogLevel logLevel = mLogLevels.get(logClass);
         if (logLevel == null) {
@@ -70,11 +69,11 @@ public class Logger {
             break;
 
         case DEBUG:
-            Log.d("[" + logClass + "." + methodName + "]", message);
+            Log.d(formatTag(), message);
             break;
 
         case INFO:
-            Log.i("[" + logClass + "." + methodName + "]", message);
+            Log.i(formatTag(), message);
             break;
 
         default:
@@ -86,29 +85,29 @@ public class Logger {
      * Log errors
      */
     public void w(String message) {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
-        String fileName = caller.getFileName();
-        String logClass = fileName.substring(0, fileName.length() - 5);
-        String methodName = caller.getMethodName();
-        Log.w("[" + logClass + "." + methodName + "]", message);
+        String tag = formatTag();
+        Log.w(tag, message);
     }
 
     /**
      * Log errors
      */
     public void e(String message) {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
-        String fileName = caller.getFileName();
-        String logClass = fileName.substring(0, fileName.length() - 5);
-        String methodName = caller.getMethodName();
-        Log.e("[" + logClass + "." + methodName + "]", message);
+        String tag = formatTag();
+        Log.e(tag, message);
     }
 
     public void e(String message, Throwable e) {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
+        String string = formatTag();
+        Log.e(string, message, e);
+    }
+
+    private String formatTag() {
+        StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
         String fileName = caller.getFileName();
         String logClass = fileName.substring(0, fileName.length() - 5);
         String methodName = caller.getMethodName();
-        Log.e("[" + logClass + "." + methodName + "]", message, e);
+        String tag = "[" + logClass + "." + methodName + "]";
+        return tag;
     }
 }
