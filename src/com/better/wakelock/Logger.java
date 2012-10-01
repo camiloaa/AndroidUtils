@@ -92,8 +92,10 @@ public class Logger {
             Log.d(TAG, string2);
         }
 
+        String formatTag = formatTag();
+
         for (LogWriter writer : writers) {
-            writer.write(LogLevel.DEBUG, formatTag(), message);
+            writer.write(logLevel, formatTag, message);
         }
 
     }
