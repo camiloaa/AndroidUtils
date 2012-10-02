@@ -8,10 +8,6 @@ public class LogcatLogWriter implements Logger.LogWriter {
     @Override
     public void write(LogLevel level, String tag, String message) {
         switch (level) {
-        case NONE:
-            // do nothing
-            break;
-
         case INFO:
             Log.i(tag, message);
             break;
@@ -36,10 +32,6 @@ public class LogcatLogWriter implements Logger.LogWriter {
     @Override
     public void write(LogLevel level, String tag, String message, Throwable e) {
         switch (level) {
-        case NONE:
-            // do nothing
-            break;
-
         case INFO:
             Log.i(tag, message, e);
             break;

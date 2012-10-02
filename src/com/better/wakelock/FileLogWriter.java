@@ -27,8 +27,6 @@ public class FileLogWriter implements LogWriter {
 
     @Override
     public void write(LogLevel level, String tag, String message, Throwable throwable) {
-        if (level.equals(LogLevel.NONE)) return;
-
         File logFile = new File("/sdcard/log.txt");
         if (!logFile.exists()) {
             try {

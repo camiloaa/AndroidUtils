@@ -12,7 +12,7 @@ public class Logger {
     private static final String TAG = Logger.class.getSimpleName();
 
     public enum LogLevel {
-        NONE, DEBUG, INFO, WARN, ERR
+        ERR, WARN, DEBUG, INFO
     }
 
     /**
@@ -61,6 +61,12 @@ public class Logger {
         writers.remove(logWriter);
     }
 
+    /**
+     * For a given logClass only messages with logLevel above will be logged.
+     * 
+     * @param logClass
+     * @param logLevel
+     */
     public void setLogLevel(Class<?> logClass, LogLevel logLevel) {
         String simpleName = logClass.getSimpleName();
         mLogLevels.put(simpleName, logLevel);
@@ -73,62 +79,59 @@ public class Logger {
     }
 
     /**
-     * Log with default level
+     * Logs the message if configured log level for the class is above requested
+     * log level. If configured {@link LogLevel} is {@link LogLevel#WARN}, only
+     * logs with {@link LogLevel#ERR} and {@link LogLevel#WARN} will be shown.
      * 
-     * @param e
+     * @param logLevel
+     * @param message
      */
-    public void d(String message) {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[3];
+    public void log(LogLevel logLevel, String message) {
+        logIfApplicable(logLevel, message, null);
+    }
+
+    private void logIfApplicable(LogLevel logLevel, String message, Throwable throwable) {
+        StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
         String fileName = caller.getFileName();
         String logClass = fileName.substring(0, fileName.length() - 5);
 
-        LogLevel logLevel = mLogLevels.get(logClass);
-        if (logLevel == null) {
-            logLevel = LogLevel.DEBUG;
-            mLogLevels.put(logClass, logLevel);
+        LogLevel configuredLogLevel = mLogLevels.get(logClass);
+
+        if (configuredLogLevel == null) {
+            configuredLogLevel = LogLevel.DEBUG;
+            mLogLevels.put(logClass, configuredLogLevel);
             String string = "no LogLevel was found for " + logClass;
             Log.w(TAG, string);
-            String string2 = "Adding " + logClass + " with LogLevel " + logLevel.toString();
+            String string2 = "Adding " + logClass + " with LogLevel " + configuredLogLevel.toString();
             Log.d(TAG, string2);
         }
-
-        String formatTag = formatTag();
-
-        for (LogWriter writer : writers) {
-            writer.write(logLevel, formatTag, message);
+        boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
+        if (shouldBeLogged) {
+            String formatTag = formatTag();
+            for (LogWriter writer : writers) {
+                writer.write(logLevel, formatTag, message, throwable);
+            }
         }
-
     }
 
-    /**
-     * Log errors
-     */
+    public void d(String message) {
+        logIfApplicable(LogLevel.DEBUG, message, null);
+    }
+
     public void w(String message) {
-        String tag = formatTag();
-        for (LogWriter writer : writers) {
-            writer.write(LogLevel.WARN, tag, message);
-        }
+        logIfApplicable(LogLevel.WARN, message, null);
     }
 
-    /**
-     * Log errors
-     */
     public void e(String message) {
-        String tag = formatTag();
-        for (LogWriter writer : writers) {
-            writer.write(LogLevel.ERR, tag, message);
-        }
+        logIfApplicable(LogLevel.ERR, message, null);
     }
 
-    public void e(String message, Throwable e) {
-        String tag = formatTag();
-        for (LogWriter writer : writers) {
-            writer.write(LogLevel.ERR, tag, message, e);
-        }
+    public void e(String message, Throwable throwable) {
+        logIfApplicable(LogLevel.ERR, message, throwable);
     }
 
     private String formatTag() {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
+        StackTraceElement caller = Thread.currentThread().getStackTrace()[5];
         String fileName = caller.getFileName();
         String logClass = fileName.substring(0, fileName.length() - 5);
         String methodName = caller.getMethodName();
