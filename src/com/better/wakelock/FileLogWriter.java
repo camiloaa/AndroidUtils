@@ -30,10 +30,11 @@ public class FileLogWriter implements LogWriter {
         File logFile = new File("/sdcard/log.txt");
         if (!logFile.exists()) {
             try {
-                Log.d(getClass().getName(), "creating new file");
                 logFile.createNewFile();
+                Log.d(getClass().getName(), "Created a new file");
             } catch (IOException e) {
-                Log.d(getClass().getName(), "oops", e);
+                Log.d(getClass().getName(), "Creating new file failed - " + e.getMessage());
+                return;
             }
         }
 
@@ -58,7 +59,7 @@ public class FileLogWriter implements LogWriter {
             buf.close();
             fileWriter.close();
         } catch (IOException e) {
-            Log.d(getClass().getName(), "oops", e);
+            Log.d(getClass().getName(), "Writing failed - " + e.getMessage());
         }
     }
 
