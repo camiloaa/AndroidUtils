@@ -102,7 +102,8 @@ public class Logger {
             mLogLevels.put(logClass, configuredLogLevel);
             String string = "no LogLevel was found for " + logClass;
             Log.w(TAG, string);
-            String string2 = "Adding " + logClass + " with LogLevel " + configuredLogLevel.toString();
+            String string2 = "Adding " + logClass + " with LogLevel "
+                    + configuredLogLevel.toString();
             Log.d(TAG, string2);
         }
         boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
@@ -114,20 +115,20 @@ public class Logger {
         }
     }
 
-    public void d(String message) {
-        logIfApplicable(LogLevel.DEBUG, message, null);
+    static public void d(String message) {
+        sInstance.logIfApplicable(LogLevel.DEBUG, message, null);
     }
 
-    public void w(String message) {
-        logIfApplicable(LogLevel.WARN, message, null);
+    static public void w(String message) {
+        sInstance.logIfApplicable(LogLevel.WARN, message, null);
     }
 
-    public void e(String message) {
-        logIfApplicable(LogLevel.ERR, message, null);
+    static public void e(String message) {
+        sInstance.logIfApplicable(LogLevel.ERR, message, null);
     }
 
-    public void e(String message, Throwable throwable) {
-        logIfApplicable(LogLevel.ERR, message, throwable);
+    static public void e(String message, Throwable throwable) {
+        sInstance.logIfApplicable(LogLevel.ERR, message, throwable);
     }
 
     private String formatTag() {
