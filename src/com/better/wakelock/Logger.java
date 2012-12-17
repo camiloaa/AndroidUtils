@@ -68,9 +68,21 @@ public class Logger {
      * @param logLevel
      */
     public void setLogLevel(Class<?> logClass, LogLevel logLevel) {
-        String simpleName = logClass.getSimpleName();
+        final String simpleName = logClass.getSimpleName();
         mLogLevels.put(simpleName, logLevel);
-        String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
+        final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
+        Log.d(TAG, string);
+    }
+
+    /**
+     * For a given simple name only messages with logLevel above will be logged.
+     * 
+     * @param logClass
+     * @param logLevel
+     */
+    public void setLogLevel(String simpleName, LogLevel logLevel) {
+        mLogLevels.put(simpleName, logLevel);
+        final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
         Log.d(TAG, string);
     }
 
@@ -91,25 +103,25 @@ public class Logger {
     }
 
     private void logIfApplicable(LogLevel logLevel, String message, Throwable throwable) {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
-        String fileName = caller.getFileName();
-        String logClass = fileName.substring(0, fileName.length() - 5);
+        final StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
+        final String fileName = caller.getFileName();
+        final String logClass = fileName.substring(0, fileName.length() - 5);
 
         LogLevel configuredLogLevel = mLogLevels.get(logClass);
 
         if (configuredLogLevel == null) {
             configuredLogLevel = LogLevel.DEBUG;
             mLogLevels.put(logClass, configuredLogLevel);
-            String string = "no LogLevel was found for " + logClass;
+            final String string = "no LogLevel was found for " + logClass;
             Log.w(TAG, string);
-            String string2 = "Adding " + logClass + " with LogLevel "
+            final String string2 = "Adding " + logClass + " with LogLevel "
                     + configuredLogLevel.toString();
             Log.d(TAG, string2);
         }
-        boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
+        final boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
         if (shouldBeLogged) {
-            String formatTag = formatTag();
-            for (LogWriter writer : writers) {
+            final String formatTag = formatTag();
+            for (final LogWriter writer : writers) {
                 writer.write(logLevel, formatTag, message, throwable);
             }
         }
@@ -132,11 +144,11 @@ public class Logger {
     }
 
     private String formatTag() {
-        StackTraceElement caller = Thread.currentThread().getStackTrace()[5];
-        String fileName = caller.getFileName();
-        String logClass = fileName.substring(0, fileName.length() - 5);
-        String methodName = caller.getMethodName();
-        String tag = "[" + logClass + "." + methodName + "]";
+        final StackTraceElement caller = Thread.currentThread().getStackTrace()[5];
+        final String fileName = caller.getFileName();
+        final String logClass = fileName.substring(0, fileName.length() - 5);
+        final String methodName = caller.getMethodName();
+        final String tag = "[" + logClass + "." + methodName + "]";
         return tag;
     }
 }

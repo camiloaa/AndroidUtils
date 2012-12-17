@@ -63,16 +63,17 @@ public class WakeLockManager {
 
     public void acquirePartialWakeLock(String tag) {
         if (!map.containsKey(tag)) {
-            WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, tag);
+            final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, tag);
             wl.acquire();
             map.put(tag, wl);
             log.d("Wakelock " + tag + " was acquired");
         } else {
-            WakeLock wl = map.get(tag);
+            final WakeLock wl = map.get(tag);
             if (wl.isHeld()) {
                 log.d("Wakelock " + tag + " is already held");
-            } else throw new RuntimeException(
-                    "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
+            } else
+                throw new RuntimeException(
+                        "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
         }
     }
 
@@ -101,7 +102,7 @@ public class WakeLockManager {
      */
     public void releasePartialWakeLock(String tag) {
         if (map.containsKey(tag)) {
-            WakeLock wl = map.get(tag);
+            final WakeLock wl = map.get(tag);
             if (wl.isHeld()) {
                 wl.release();
                 map.remove(tag);
@@ -124,7 +125,7 @@ public class WakeLockManager {
      */
     public void releasePartialWakeLock(Intent intent) {
         if (intent.hasExtra(WakeLockManager.EXTRA_WAKELOCK_TAG)) {
-            String wlTag = intent.getStringExtra(WakeLockManager.EXTRA_WAKELOCK_TAG);
+            final String wlTag = intent.getStringExtra(WakeLockManager.EXTRA_WAKELOCK_TAG);
             releasePartialWakeLock(wlTag);
         }
     }

@@ -27,12 +27,12 @@ public class FileLogWriter implements LogWriter {
 
     @Override
     public void write(LogLevel level, String tag, String message, Throwable throwable) {
-        File logFile = new File("/sdcard/log.txt");
+        final File logFile = new File("/sdcard/log.txt");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
                 Log.d(getClass().getName(), "Created a new file");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 Log.d(getClass().getName(), "Creating new file failed - " + e.getMessage());
                 return;
             }
@@ -40,9 +40,9 @@ public class FileLogWriter implements LogWriter {
 
         try {
             // BufferedWriter for performance, true to set append to file flag
-            FileWriter fileWriter = new FileWriter(logFile, true);
-            BufferedWriter buf = new BufferedWriter(fileWriter);
-            Date timeStamp = new Date(System.currentTimeMillis());
+            final FileWriter fileWriter = new FileWriter(logFile, true);
+            final BufferedWriter buf = new BufferedWriter(fileWriter);
+            final Date timeStamp = new Date(System.currentTimeMillis());
             buf.append(df.format(timeStamp));
             buf.append(" ");
             buf.append(level.name());
@@ -51,14 +51,14 @@ public class FileLogWriter implements LogWriter {
             buf.append(" ");
             buf.append(message);
             if (throwable != null) {
-                PrintStream stream = new PrintStream(logFile);
+                final PrintStream stream = new PrintStream(logFile);
                 throwable.printStackTrace(stream);
             }
             buf.newLine();
             buf.flush();
             buf.close();
             fileWriter.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             Log.d(getClass().getName(), "Writing failed - " + e.getMessage());
         }
     }
