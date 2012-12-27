@@ -48,7 +48,7 @@ public class Logger {
 
     private final List<LogWriter> writers;
 
-    private Logger() {
+    public Logger() {
         mLogLevels = new HashMap<String, Logger.LogLevel>();
         writers = new ArrayList<LogWriter>();
     }
@@ -114,8 +114,7 @@ public class Logger {
             mLogLevels.put(logClass, configuredLogLevel);
             final String string = "no LogLevel was found for " + logClass;
             Log.w(TAG, string);
-            final String string2 = "Adding " + logClass + " with LogLevel "
-                    + configuredLogLevel.toString();
+            final String string2 = "Adding " + logClass + " with LogLevel " + configuredLogLevel.toString();
             Log.d(TAG, string2);
         }
         final boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
