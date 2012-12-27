@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.better.wakelock;
+package com.github.androidutils.wakelock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,8 @@ import android.content.Intent;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
-import com.better.wakelock.Logger.LogLevel;
+import com.github.androidutils.logger.Logger;
+import com.github.androidutils.logger.Logger.LogLevel;
 
 /**
  * Utility class to pass {@link WakeLock} objects with intents. It contains a
@@ -71,9 +72,8 @@ public class WakeLockManager {
             final WakeLock wl = map.get(tag);
             if (wl.isHeld()) {
                 log.d("Wakelock " + tag + " is already held");
-            } else
-                throw new RuntimeException(
-                        "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
+            } else throw new RuntimeException(
+                    "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
         }
     }
 

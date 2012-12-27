@@ -1,8 +1,8 @@
-package com.better.wakelock;
+package com.github.androidutils.logger;
 
 import android.util.Log;
 
-import com.better.wakelock.Logger.LogLevel;
+import com.github.androidutils.logger.Logger.LogLevel;
 
 public class LogcatLogWriter implements Logger.LogWriter {
     @Override

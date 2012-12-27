@@ -1,4 +1,4 @@
-package com.better.wakelock;
+package com.github.androidutils.logger;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,8 +10,8 @@ import java.util.Date;
 
 import android.util.Log;
 
-import com.better.wakelock.Logger.LogLevel;
-import com.better.wakelock.Logger.LogWriter;
+import com.github.androidutils.logger.Logger.LogLevel;
+import com.github.androidutils.logger.Logger.LogWriter;
 
 public class FileLogWriter implements LogWriter {
     DateFormat df;

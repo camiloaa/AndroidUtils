@@ -1,4 +1,4 @@
-package com.better.wakelock;
+package com.github.androidutils.logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
