@@ -696,6 +696,8 @@ public class StateMachine {
         /** The debug flag */
         private boolean mDbg = false;
 
+        private IMessageWhatToStringConverter mConverter = new DefaulftConverter();
+
         /** The SmHandler object, identifies that message is internal */
         private static final Object mSmHandlerObj = new Object();
 
@@ -788,6 +790,13 @@ public class StateMachine {
             }
         }
 
+        private class DefaulftConverter implements IMessageWhatToStringConverter {
+            @Override
+            public String messageWhatToString(int what) {
+                return Integer.toString(what);
+            }
+        }
+
         /**
          * Handle messages sent to the state machine by calling the current
          * state's processMessage. It also handles the enter/exit calls and
@@ -797,7 +806,7 @@ public class StateMachine {
         @Override
         public final void handleMessage(Message msg) {
             if (mDbg) {
-                Log.d(TAG, "handleMessage: E msg.what=" + msg.what);
+                Log.d(TAG, "handleMessage: E msg.what=" + mConverter.messageWhatToString(msg.what));
             }
 
             /** Save the current message */
@@ -1252,6 +1261,11 @@ public class StateMachine {
         /** @see StateMachine#setDbg(boolean) */
         private final void setDbg(boolean dbg) {
             mDbg = dbg;
+        }
+
+        /** @see StateMachine#setMessageWhatToStringConverter(IMessageWhatToStringConverter) */
+        private final void setMessageWhatToStringConverter(IMessageWhatToStringConverter converter) {
+            mConverter = converter;
         }
 
         /**
@@ -1733,6 +1747,13 @@ public class StateMachine {
         if (mSmHandler == null) return;
 
         mSmHandler.setDbg(dbg);
+    }
+
+    public void setMessageWhatToStringConverter(IMessageWhatToStringConverter converter) {
+        // mSmHandler can be null if the state machine has quit.
+        if (mSmHandler == null) return;
+
+        mSmHandler.setMessageWhatToStringConverter(converter);
     }
 
     /**
