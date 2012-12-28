@@ -29,7 +29,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
+
+import com.github.androidutils.logger.Logger;
 
 /**
  * {@hide}
@@ -462,9 +463,9 @@ D/hsm1    ( 1999): halting
 </code>
  */
 public class StateMachine {
-
-    private static final String TAG = "StateMachine";
     private String mName;
+
+    private Logger log;
 
     /** Message.what value when quitting */
     private static final int SM_QUIT_CMD = -1;
@@ -696,6 +697,8 @@ public class StateMachine {
         /** The debug flag */
         private boolean mDbg = false;
 
+        private final Logger log;
+
         private IMessageWhatToStringConverter mConverter = new DefaulftConverter();
 
         /** The SmHandler object, identifies that message is internal */
@@ -805,10 +808,6 @@ public class StateMachine {
          */
         @Override
         public final void handleMessage(Message msg) {
-            if (mDbg) {
-                Log.d(TAG, "handleMessage: E msg.what=" + mConverter.messageWhatToString(msg.what));
-            }
-
             /** Save the current message */
             mMsg = msg;
 
@@ -822,10 +821,6 @@ public class StateMachine {
             } else throw new RuntimeException("StateMachine.handleMessage: "
                     + "The start method not called, received msg: " + msg);
             performTransitions();
-
-            if (mDbg) {
-                Log.d(TAG, "handleMessage: X");
-            }
         }
 
         /**
@@ -839,10 +834,6 @@ public class StateMachine {
              */
             State destState = null;
             while (mDestState != null) {
-                if (mDbg) {
-                    Log.d(TAG, "handleMessage: new destination call exit");
-                }
-
                 /**
                  * Save mDestState locally and set to null to know if enter/exit
                  * use transitionTo.
@@ -920,10 +911,6 @@ public class StateMachine {
          * Complete the construction of the state machine.
          */
         private final void completeConstruction() {
-            if (mDbg) {
-                Log.d(TAG, "completeConstruction: E");
-            }
-
             /**
              * Determine the maximum depth of the state hierarchy so we can
              * allocate the state stacks.
@@ -938,9 +925,6 @@ public class StateMachine {
                     maxDepth = depth;
                 }
             }
-            if (mDbg) {
-                Log.d(TAG, "completeConstruction: maxDepth=" + maxDepth);
-            }
 
             mStateStack = new StateInfo[maxDepth];
             mTempStateStack = new StateInfo[maxDepth];
@@ -952,9 +936,8 @@ public class StateMachine {
              */
             sendMessageAtFrontOfQueue(obtainMessage(SM_INIT_CMD, mSmHandlerObj));
 
-            if (mDbg) {
-                Log.d(TAG, "completeConstruction: X");
-            }
+            log.d("completed");
+            // TODO optional hierarchu dump
         }
 
         /**
@@ -964,9 +947,8 @@ public class StateMachine {
          */
         private final void processMsg(Message msg) {
             StateInfo curStateInfo = mStateStack[mStateStackTopIndex];
-            if (mDbg) {
-                Log.d(TAG, "processMsg: " + curStateInfo.state.getName());
-            }
+            // TODO handled/not handled
+            log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName());
 
             if (isQuit(msg)) {
                 transitionTo(mQuittingState);
@@ -983,9 +965,7 @@ public class StateMachine {
                         mSm.unhandledMessage(msg);
                         break;
                     }
-                    if (mDbg) {
-                        Log.d(TAG, "processMsg: " + curStateInfo.state.getName());
-                    }
+                    log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName());
                 }
 
                 /**
@@ -1009,9 +989,7 @@ public class StateMachine {
         private final void invokeExitMethods(StateInfo commonStateInfo) {
             while (mStateStackTopIndex >= 0 && mStateStack[mStateStackTopIndex] != commonStateInfo) {
                 State curState = mStateStack[mStateStackTopIndex].state;
-                if (mDbg) {
-                    Log.d(TAG, "invokeExitMethods: " + curState.getName());
-                }
+                log.d("call exit() on " + curState.getName());
                 curState.exit();
                 mStateStack[mStateStackTopIndex].active = false;
                 mStateStackTopIndex -= 1;
@@ -1024,9 +1002,7 @@ public class StateMachine {
          */
         private final void invokeEnterMethods(int stateStackEnteringIndex) {
             for (int i = stateStackEnteringIndex; i <= mStateStackTopIndex; i++) {
-                if (mDbg) {
-                    Log.d(TAG, "invokeEnterMethods: " + mStateStack[i].state.getName());
-                }
+                log.d("call enter() on " + mStateStack[i].state.getName());
                 mStateStack[i].state.enter();
                 mStateStack[i].active = true;
             }
@@ -1043,9 +1019,7 @@ public class StateMachine {
              */
             for (int i = mDeferredMessages.size() - 1; i >= 0; i--) {
                 Message curMsg = mDeferredMessages.get(i);
-                if (mDbg) {
-                    Log.d(TAG, "moveDeferredMessageAtFrontOfQueue; what=" + curMsg.what);
-                }
+                log.d(mConverter.messageWhatToString(curMsg.what));
                 sendMessageAtFrontOfQueue(curMsg);
             }
             mDeferredMessages.clear();
@@ -1062,19 +1036,12 @@ public class StateMachine {
             int i = mTempStateStackCount - 1;
             int j = startingIndex;
             while (i >= 0) {
-                if (mDbg) {
-                    Log.d(TAG, "moveTempStackToStateStack: i=" + i + ",j=" + j);
-                }
                 mStateStack[j] = mTempStateStack[i];
                 j += 1;
                 i -= 1;
             }
 
             mStateStackTopIndex = j - 1;
-            if (mDbg) {
-                Log.d(TAG, "moveTempStackToStateStack: X mStateStackTop=" + mStateStackTopIndex + ",startingIndex="
-                        + startingIndex + ",Top=" + mStateStack[mStateStackTopIndex].state.getName());
-            }
             return startingIndex;
         }
 
@@ -1103,10 +1070,6 @@ public class StateMachine {
                 curStateInfo = curStateInfo.parentStateInfo;
             } while (curStateInfo != null && !curStateInfo.active);
 
-            if (mDbg) {
-                Log.d(TAG, "setupTempStateStackWithStatesToEnter: X mTempStateStackCount=" + mTempStateStackCount
-                        + ",curStateInfo: " + curStateInfo);
-            }
             return curStateInfo;
         }
 
@@ -1114,10 +1077,6 @@ public class StateMachine {
          * Initialize StateStack to mInitialState.
          */
         private final void setupInitialStateStack() {
-            if (mDbg) {
-                Log.d(TAG, "setupInitialStateStack: E mInitialState=" + mInitialState.getName());
-            }
-
             StateInfo curStateInfo = mStateInfo.get(mInitialState);
             for (mTempStateStackCount = 0; curStateInfo != null; mTempStateStackCount++) {
                 mTempStateStack[mTempStateStackCount] = curStateInfo;
@@ -1155,11 +1114,6 @@ public class StateMachine {
          * @return stateInfo for this state
          */
         private final StateInfo addState(State state, State parent) {
-            if (mDbg) {
-                Log.d(TAG,
-                        "addStateInternal: E state=" + state.getName() + ",parent="
-                                + (parent == null ? "" : parent.getName()));
-            }
             StateInfo parentStateInfo = null;
             if (parent != null) {
                 parentStateInfo = mStateInfo.get(parent);
@@ -1181,9 +1135,6 @@ public class StateMachine {
             stateInfo.state = state;
             stateInfo.parentStateInfo = parentStateInfo;
             stateInfo.active = false;
-            if (mDbg) {
-                Log.d(TAG, "addStateInternal: X stateInfo: " + stateInfo);
-            }
             return stateInfo;
         }
 
@@ -1195,35 +1146,28 @@ public class StateMachine {
          * @param sm
          *            the hierarchical state machine
          */
-        private SmHandler(Looper looper, StateMachine sm) {
+        private SmHandler(Looper looper, StateMachine sm, Logger log) {
             super(looper);
             mSm = sm;
-
+            this.log = log;
             addState(mHaltingState, null);
             addState(mQuittingState, null);
         }
 
         /** @see StateMachine#setInitialState(State) */
         private final void setInitialState(State initialState) {
-            if (mDbg) {
-                Log.d(TAG, "setInitialState: initialState=" + initialState.getName());
-            }
             mInitialState = initialState;
         }
 
         /** @see StateMachine#transitionTo(IState) */
         private final void transitionTo(IState destState) {
             mDestState = (State) destState;
-            if (mDbg) {
-                Log.d(TAG, "transitionTo: destState=" + mDestState.getName());
-            }
+            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to " + mDestState.getName());
         }
 
         /** @see StateMachine#deferMessage(Message) */
         private final void deferMessage(Message msg) {
-            if (mDbg) {
-                Log.d(TAG, "deferMessage: msg=" + msg.what);
-            }
+            log.d(mConverter.messageWhatToString(msg.what));
 
             /* Copy the "msg" to "newMsg" as "msg" will be recycled */
             Message newMsg = obtainMessage();
@@ -1234,17 +1178,11 @@ public class StateMachine {
 
         /** @see StateMachine#quit() */
         private final void quit() {
-            if (mDbg) {
-                Log.d(TAG, "quit:");
-            }
             sendMessage(obtainMessage(SM_QUIT_CMD, mSmHandlerObj));
         }
 
         /** @see StateMachine#quitNow() */
         private final void quitNow() {
-            if (mDbg) {
-                Log.d(TAG, "abort:");
-            }
             sendMessageAtFrontOfQueue(obtainMessage(SM_QUIT_CMD, mSmHandlerObj));
         }
 
@@ -1290,9 +1228,10 @@ public class StateMachine {
      * @param name
      *            of the state machine
      */
-    private void initStateMachine(String name, Looper looper) {
+    private void initStateMachine(String name, Looper looper, Logger log) {
         mName = name;
-        mSmHandler = new SmHandler(looper, this);
+        this.log = log;
+        mSmHandler = new SmHandler(looper, this, log);
     }
 
     /**
@@ -1301,12 +1240,12 @@ public class StateMachine {
      * @param name
      *            of the state machine
      */
-    protected StateMachine(String name) {
+    protected StateMachine(String name, Logger log) {
         mSmThread = new HandlerThread(name);
         mSmThread.start();
         Looper looper = mSmThread.getLooper();
 
-        initStateMachine(name, looper);
+        initStateMachine(name, looper, log);
     }
 
     /**
@@ -1315,8 +1254,8 @@ public class StateMachine {
      * @param name
      *            of the state machine
      */
-    public StateMachine(String name, Looper looper) {
-        initStateMachine(name, looper);
+    public StateMachine(String name, Looper looper, Logger log) {
+        initStateMachine(name, looper, log);
     }
 
     /**
@@ -1417,9 +1356,7 @@ public class StateMachine {
      *            that couldn't be handled.
      */
     protected void unhandledMessage(Message msg) {
-        if (mSmHandler.mDbg) {
-            Log.e(TAG, mName + " - unhandledMessage: msg.what=" + msg.what);
-        }
+        log.e(mName + " was not able to handle " + mSmHandler.mConverter.messageWhatToString(msg.what));
     }
 
     /**
