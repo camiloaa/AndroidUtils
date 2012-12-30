@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -772,6 +773,8 @@ public class StateMachine {
         /** The list of deferred messages */
         private final ArrayList<Message> mDeferredMessages = new ArrayList<Message>();
 
+        private final CopyOnWriteArrayList<IOnStateChangedListener> onStateChangedListeners = new CopyOnWriteArrayList<IOnStateChangedListener>();
+
         /**
          * State entered when transitionToHaltingState is called.
          */
@@ -1002,6 +1005,7 @@ public class StateMachine {
          */
         private final void invokeEnterMethods(int stateStackEnteringIndex) {
             for (int i = stateStackEnteringIndex; i <= mStateStackTopIndex; i++) {
+                onStateChanged(mStateStack[i].state);
                 log.d("call enter() on " + mStateStack[i].state.getName());
                 mStateStack[i].state.enter();
                 mStateStack[i].active = true;
@@ -1215,6 +1219,16 @@ public class StateMachine {
             return mStateInfo.keySet();
         }
 
+        private void onStateChanged(State state) {
+            for (IOnStateChangedListener onStateChangedListener : onStateChangedListeners) {
+                onStateChangedListener.onStateChanged(state);
+            }
+        }
+
+        public void addOnStateChangedListener(IOnStateChangedListener onStateChangedListener) {
+            onStateChangedListeners.add(onStateChangedListener);
+        }
+
     }
 
     private SmHandler mSmHandler;
@@ -1381,6 +1395,13 @@ public class StateMachine {
      * thread, the thread will be stopped after this method returns.
      */
     protected void onQuitting() {
+    }
+
+    /**
+     * This will be called before calling {@link IState#enter()}
+     */
+    protected void addOnStateChangedListener(IOnStateChangedListener onStateChangedListener) {
+        mSmHandler.addOnStateChangedListener(onStateChangedListener);
     }
 
     /**
