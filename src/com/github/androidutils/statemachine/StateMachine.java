@@ -992,7 +992,6 @@ public class StateMachine {
         private final void invokeExitMethods(StateInfo commonStateInfo) {
             while (mStateStackTopIndex >= 0 && mStateStack[mStateStackTopIndex] != commonStateInfo) {
                 State curState = mStateStack[mStateStackTopIndex].state;
-                log.d("call exit() on " + curState.getName());
                 curState.exit();
                 mStateStack[mStateStackTopIndex].active = false;
                 mStateStackTopIndex -= 1;
@@ -1006,7 +1005,6 @@ public class StateMachine {
         private final void invokeEnterMethods(int stateStackEnteringIndex) {
             for (int i = stateStackEnteringIndex; i <= mStateStackTopIndex; i++) {
                 onStateChanged(mStateStack[i].state);
-                log.d("call enter() on " + mStateStack[i].state.getName());
                 mStateStack[i].state.enter();
                 mStateStack[i].active = true;
             }
