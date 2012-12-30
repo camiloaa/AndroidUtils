@@ -126,19 +126,19 @@ public class Logger {
         }
     }
 
-    static public void d(String message) {
+    public void d(String message) {
         sInstance.logIfApplicable(LogLevel.DEBUG, message, null);
     }
 
-    static public void w(String message) {
+    public void w(String message) {
         sInstance.logIfApplicable(LogLevel.WARN, message, null);
     }
 
-    static public void e(String message) {
+    public void e(String message) {
         sInstance.logIfApplicable(LogLevel.ERR, message, null);
     }
 
-    static public void e(String message, Throwable throwable) {
+    public void e(String message, Throwable throwable) {
         sInstance.logIfApplicable(LogLevel.ERR, message, throwable);
     }
 
