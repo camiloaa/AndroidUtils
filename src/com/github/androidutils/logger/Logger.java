@@ -39,8 +39,9 @@ public class Logger {
         return sInstance;
     }
 
+    @Deprecated
     public static Logger init() {
-        if (sInstance != null) {
+        if (sInstance == null) {
             sInstance = new Logger();
         }
         return sInstance;
