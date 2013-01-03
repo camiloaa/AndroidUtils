@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import android.util.Log;
@@ -27,7 +28,10 @@ public class FileLogWriter implements LogWriter {
 
     @Override
     public void write(LogLevel level, String tag, String message, Throwable throwable) {
-        final File logFile = new File("/sdcard/log.txt");
+        Calendar today = Calendar.getInstance();
+        DateFormat df = DateFormat.getDateInstance();
+        String date = df.format(today.getTime());
+        final File logFile = new File("/sdcard/" + date + "_log.txt");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
