@@ -30,6 +30,7 @@ public class FileLogWriter implements LogWriter {
     public void write(LogLevel level, String tag, String message, Throwable throwable) {
         Calendar today = Calendar.getInstance();
         DateFormat df = DateFormat.getDateInstance();
+        DateFormat dtf = DateFormat.getDateTimeInstance();
         String date = df.format(today.getTime());
         final File logFile = new File("/sdcard/" + date + "_log.txt");
         if (!logFile.exists()) {
@@ -47,7 +48,7 @@ public class FileLogWriter implements LogWriter {
             final FileWriter fileWriter = new FileWriter(logFile, true);
             final BufferedWriter buf = new BufferedWriter(fileWriter);
             final Date timeStamp = new Date(System.currentTimeMillis());
-            buf.append(df.format(timeStamp));
+            buf.append(dtf.format(timeStamp));
             buf.append(" ");
             buf.append(level.name());
             buf.append(" ");
