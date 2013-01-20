@@ -15,10 +15,17 @@ import com.github.androidutils.logger.Logger.LogLevel;
 import com.github.androidutils.logger.Logger.LogWriter;
 
 public class FileLogWriter implements LogWriter {
+    private static final String DEFAULT_LOGS_DIRECTORY = "logs";
     DateFormat df;
+    private final String logDirectory;
 
     public FileLogWriter() {
+        this(DEFAULT_LOGS_DIRECTORY);
+    }
+
+    public FileLogWriter(String logDirectory) {
         df = DateFormat.getDateTimeInstance();
+        this.logDirectory = "/sdcard/" + logDirectory + "/";
     }
 
     @Override
@@ -32,7 +39,11 @@ public class FileLogWriter implements LogWriter {
         DateFormat df = DateFormat.getDateInstance();
         DateFormat dtf = DateFormat.getDateTimeInstance();
         String date = df.format(today.getTime());
-        final File logFile = new File("/sdcard/" + date + "_log.txt");
+        File direct = new File(logDirectory);
+        if (!direct.exists()) {
+            direct.mkdir();
+        }
+        final File logFile = new File(logDirectory + date + "_log.txt");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
@@ -67,5 +78,4 @@ public class FileLogWriter implements LogWriter {
             Log.d(getClass().getName(), "Writing failed - " + e.getMessage());
         }
     }
-
 }
