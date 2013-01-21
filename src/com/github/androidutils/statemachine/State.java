@@ -40,6 +40,11 @@ public class State implements IState {
     public void enter() {
     }
 
+    @Override
+    public void resume() {
+
+    }
+
     /*
      * (non-Javadoc)
      * 

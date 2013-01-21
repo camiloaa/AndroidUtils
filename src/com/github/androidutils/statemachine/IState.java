@@ -41,6 +41,11 @@ public interface IState {
     void enter();
 
     /**
+     * Called when state is resumed. Like onResume()
+     */
+    void resume();
+
+    /**
      * Called when a state is exited.
      */
     void exit();

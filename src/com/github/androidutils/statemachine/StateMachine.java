@@ -662,8 +662,10 @@ public class StateMachine {
             if (nextIndex >= mMaxSize) {
                 nextIndex -= mMaxSize;
             }
-            if (nextIndex >= size()) return null;
-            else return mLogRecords.get(nextIndex);
+            if (nextIndex >= size())
+                return null;
+            else
+                return mLogRecords.get(nextIndex);
         }
 
         /**
@@ -817,12 +819,15 @@ public class StateMachine {
             if (mIsConstructionCompleted) {
                 /** Normal path */
                 processMsg(msg);
-            } else if (!mIsConstructionCompleted && mMsg.what == SM_INIT_CMD && mMsg.obj == mSmHandlerObj) {
+            } else if (!mIsConstructionCompleted && mMsg.what == SM_INIT_CMD
+                    && mMsg.obj == mSmHandlerObj) {
                 /** Initial one time path. */
                 mIsConstructionCompleted = true;
-                invokeEnterMethods(0);
-            } else throw new RuntimeException("StateMachine.handleMessage: "
-                    + "The start method not called, received msg: " + msg);
+                boolean resume = msg.arg1 == 1;
+                invokeEnterMethods(0, resume);
+            } else
+                throw new RuntimeException("StateMachine.handleMessage: "
+                        + "The start method not called, received msg: " + msg);
             performTransitions();
         }
 
@@ -852,7 +857,7 @@ public class StateMachine {
                 StateInfo commonStateInfo = setupTempStateStackWithStatesToEnter(destState);
                 invokeExitMethods(commonStateInfo);
                 int stateStackEnteringIndex = moveTempStateStackToStateStack();
-                invokeEnterMethods(stateStackEnteringIndex);
+                invokeEnterMethods(stateStackEnteringIndex, false);
 
                 /**
                  * Since we have transitioned to a new state we need to have any
@@ -912,8 +917,10 @@ public class StateMachine {
 
         /**
          * Complete the construction of the state machine.
+         * 
+         * @param resume
          */
-        private final void completeConstruction() {
+        private final void completeConstruction(boolean resume) {
             /**
              * Determine the maximum depth of the state hierarchy so we can
              * allocate the state stacks.
@@ -937,7 +944,9 @@ public class StateMachine {
              * Sending SM_INIT_CMD message to invoke enter methods
              * asynchronously
              */
-            sendMessageAtFrontOfQueue(obtainMessage(SM_INIT_CMD, mSmHandlerObj));
+            Message message = obtainMessage(SM_INIT_CMD, mSmHandlerObj);
+            message.arg1 = resume ? 1 : 0;
+            sendMessageAtFrontOfQueue(message);
 
             log.d("completed");
             // TODO optional hierarchu dump
@@ -968,7 +977,8 @@ public class StateMachine {
                         mSm.unhandledMessage(msg);
                         break;
                     }
-                    log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName());
+                    log.d(mConverter.messageWhatToString(msg.what) + " in "
+                            + curStateInfo.state.getName());
                 }
 
                 /**
@@ -977,7 +987,8 @@ public class StateMachine {
                 if (mSm.recordLogRec(msg)) {
                     if (curStateInfo != null) {
                         State orgState = mStateStack[mStateStackTopIndex].state;
-                        mLogRecords.add(msg, mSm.getLogRecString(msg), curStateInfo.state, orgState);
+                        mLogRecords
+                                .add(msg, mSm.getLogRecString(msg), curStateInfo.state, orgState);
                     } else {
                         mLogRecords.add(msg, mSm.getLogRecString(msg), null, null);
                     }
@@ -1001,11 +1012,18 @@ public class StateMachine {
         /**
          * Invoke the enter method starting at the entering index to top of
          * state stack
+         * 
+         * @param resume
+         *            true if state machine is resuming from hibernation. In
+         *            this case {@link IState#enter()} will not be invoked
          */
-        private final void invokeEnterMethods(int stateStackEnteringIndex) {
+        private final void invokeEnterMethods(int stateStackEnteringIndex, boolean resume) {
             for (int i = stateStackEnteringIndex; i <= mStateStackTopIndex; i++) {
                 onStateChanged(mStateStack[i].state);
-                mStateStack[i].state.enter();
+                if (!resume) {
+                    mStateStack[i].state.enter();
+                }
+                mStateStack[i].state.resume();
                 mStateStack[i].active = true;
             }
         }
@@ -1164,7 +1182,8 @@ public class StateMachine {
         /** @see StateMachine#transitionTo(IState) */
         private final void transitionTo(IState destState) {
             mDestState = (State) destState;
-            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to " + mDestState.getName());
+            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to "
+                    + mDestState.getName());
         }
 
         /** @see StateMachine#deferMessage(Message) */
@@ -1368,7 +1387,8 @@ public class StateMachine {
      *            that couldn't be handled.
      */
     protected void unhandledMessage(Message msg) {
-        log.e(mName + " was not able to handle " + mSmHandler.mConverter.messageWhatToString(msg.what));
+        log.e(mName + " was not able to handle "
+                + mSmHandler.mConverter.messageWhatToString(msg.what));
     }
 
     /**
@@ -1720,7 +1740,18 @@ public class StateMachine {
         if (mSmHandler == null) return;
 
         /** Send the complete construction message */
-        mSmHandler.completeConstruction();
+        mSmHandler.completeConstruction(false);
+    }
+
+    /**
+     * Start the state machine.
+     */
+    public void resume() {
+        // mSmHandler can be null if the state machine has quit.
+        if (mSmHandler == null) return;
+
+        /** Send the complete construction message */
+        mSmHandler.completeConstruction(true);
     }
 
     /**
