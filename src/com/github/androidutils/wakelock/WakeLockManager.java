@@ -15,8 +15,9 @@
  */
 package com.github.androidutils.wakelock;
 
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import android.app.Application;
 import android.content.Context;
@@ -35,12 +36,13 @@ import com.github.androidutils.logger.Logger.LogLevel;
  */
 public class WakeLockManager {
     public static final String EXTRA_WAKELOCK_TAG = "WakeLockManager.EXTRA_WAKELOCK_TAG";
+    public static final String EXTRA_WAKELOCK_HASH = "WakeLockManager.EXTRA_WAKELOCK_HASH";
     private static final String TAG = "WakeLockManager";
     private final Logger log;
 
     private static WakeLockManager sInstance;
 
-    private final Map<String, WakeLock> map;
+    private final CopyOnWriteArrayList<WakeLock> wakeLocks;
     private final PowerManager pm;
 
     public static WakeLockManager getWakeLockManager() {
@@ -55,31 +57,11 @@ public class WakeLockManager {
 
     private WakeLockManager(Context context, Logger logger, boolean debug) {
         pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        map = new HashMap<String, PowerManager.WakeLock>();
+        wakeLocks = new CopyOnWriteArrayList<PowerManager.WakeLock>();
         log = logger;
         if (debug && logger.getLevel(this.getClass()) == null) {
             logger.setLogLevel(getClass(), LogLevel.DEBUG);
         }
-    }
-
-    public void acquirePartialWakeLock(String tag) {
-        if (!map.containsKey(tag)) {
-            final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, tag);
-            wl.acquire();
-            map.put(tag, wl);
-            log.d("Wakelock " + tag + " was acquired");
-        } else {
-            final WakeLock wl = map.get(tag);
-            if (wl.isHeld()) {
-                log.d("Wakelock " + tag + " is already held");
-            } else throw new RuntimeException(
-                    "Wakelock is present in the map but is not held. this will be only possible when timeouts are supported");
-        }
-    }
-
-    public void acquirePartialWakeLock(String tag, int timeInMillis) {
-        acquirePartialWakeLock(tag);
-        // TODO check time
     }
 
     /**
@@ -91,30 +73,12 @@ public class WakeLockManager {
      * @param wlTag
      */
     public void acquirePartialWakeLock(Intent intent, String wlTag) {
-        acquirePartialWakeLock(wlTag);
+        final WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, wlTag);
+        wl.acquire();
+        wakeLocks.add(wl);
+        intent.putExtra(WakeLockManager.EXTRA_WAKELOCK_HASH, wl.hashCode());
         intent.putExtra(WakeLockManager.EXTRA_WAKELOCK_TAG, wlTag);
-    }
-
-    /**
-     * Releases a partial {@link WakeLock} with a given tag
-     * 
-     * @param tag
-     */
-    public void releasePartialWakeLock(String tag) {
-        if (map.containsKey(tag)) {
-            final WakeLock wl = map.get(tag);
-            if (wl.isHeld()) {
-                wl.release();
-                map.remove(tag);
-                log.d("Wakelock " + tag + " was released");
-            } else {
-                map.remove(tag);
-                log.d("Wakelock " + tag + " was already released!");
-            }
-
-        } else {
-            log.w("There is no wakelock " + tag + " known to me");
-        }
+        log.d(wl.toString() + " " + wlTag + " was acquired");
     }
 
     /**
@@ -125,9 +89,24 @@ public class WakeLockManager {
      */
     public void releasePartialWakeLock(Intent intent) {
         if (intent.hasExtra(WakeLockManager.EXTRA_WAKELOCK_TAG)) {
-            final String wlTag = intent.getStringExtra(WakeLockManager.EXTRA_WAKELOCK_TAG);
-            releasePartialWakeLock(wlTag);
+            final int hash = intent.getIntExtra(WakeLockManager.EXTRA_WAKELOCK_HASH, -1);
+            final String tag = intent.getStringExtra(WakeLockManager.EXTRA_WAKELOCK_TAG);
+            // We use copy on write list. Iterator won't cause
+            // ConcurrentModificationException
+            for (Iterator<WakeLock> iterator = wakeLocks.iterator(); iterator.hasNext();) {
+                WakeLock wakeLock = iterator.next();
+                if (hash == wakeLock.hashCode()) {
+                    if (wakeLock.isHeld()) {
+                        wakeLock.release();
+                        log.d(wakeLock.toString() + " " + tag + " was released");
+                    } else {
+                        log.e(wakeLock.toString() + " " + tag + " was already released!");
+                    }
+                    wakeLocks.remove(wakeLock);
+                    return;
+                }
+            }
+            log.e("Hash " + hash + " was not found");
         }
     }
-
 }
