@@ -1,5 +1,7 @@
 package com.github.androidutils.statemachine;
 
+import org.acra.ACRA;
+
 import android.os.Message;
 
 import com.github.androidutils.logger.Logger;
@@ -24,6 +26,8 @@ public abstract class ComplexTransition extends State {
     public final boolean processMessage(Message msg) {
         log.e("performComplexTransition() must transit immediately");
         sm.deferMessage(msg);
+        ACRA.getErrorReporter().handleSilentException(
+                new Exception("performComplexTransition() must transit immediately"));
         return true;
     }
 
