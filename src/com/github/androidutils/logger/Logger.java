@@ -11,6 +11,8 @@ public class Logger {
 
     private static final String TAG = Logger.class.getSimpleName();
 
+    private static final boolean DBG = false;
+
     public enum LogLevel {
         ERR, WARN, DEBUG, INFO
     }
@@ -71,8 +73,10 @@ public class Logger {
     public void setLogLevel(Class<?> logClass, LogLevel logLevel) {
         final String simpleName = logClass.getSimpleName();
         mLogLevels.put(simpleName, logLevel);
-        final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
-        Log.d(TAG, string);
+        if (DBG) {
+            final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
+            Log.d(TAG, string);
+        }
     }
 
     /**
