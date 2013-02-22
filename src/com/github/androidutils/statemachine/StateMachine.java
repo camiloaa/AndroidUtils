@@ -662,10 +662,8 @@ public class StateMachine {
             if (nextIndex >= mMaxSize) {
                 nextIndex -= mMaxSize;
             }
-            if (nextIndex >= size())
-                return null;
-            else
-                return mLogRecords.get(nextIndex);
+            if (nextIndex >= size()) return null;
+            else return mLogRecords.get(nextIndex);
         }
 
         /**
@@ -819,15 +817,13 @@ public class StateMachine {
             if (mIsConstructionCompleted) {
                 /** Normal path */
                 processMsg(msg);
-            } else if (!mIsConstructionCompleted && mMsg.what == SM_INIT_CMD
-                    && mMsg.obj == mSmHandlerObj) {
+            } else if (!mIsConstructionCompleted && mMsg.what == SM_INIT_CMD && mMsg.obj == mSmHandlerObj) {
                 /** Initial one time path. */
                 mIsConstructionCompleted = true;
                 boolean resume = msg.arg1 == 1;
                 invokeEnterMethods(0, resume);
-            } else
-                throw new RuntimeException("StateMachine.handleMessage: "
-                        + "The start method not called, received msg: " + msg);
+            } else throw new RuntimeException("StateMachine.handleMessage: "
+                    + "The start method not called, received msg: " + msg);
             performTransitions();
         }
 
@@ -977,8 +973,7 @@ public class StateMachine {
                         mSm.unhandledMessage(msg);
                         break;
                     }
-                    log.d(mConverter.messageWhatToString(msg.what) + " in "
-                            + curStateInfo.state.getName());
+                    log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName());
                 }
 
                 /**
@@ -987,8 +982,7 @@ public class StateMachine {
                 if (mSm.recordLogRec(msg)) {
                     if (curStateInfo != null) {
                         State orgState = mStateStack[mStateStackTopIndex].state;
-                        mLogRecords
-                                .add(msg, mSm.getLogRecString(msg), curStateInfo.state, orgState);
+                        mLogRecords.add(msg, mSm.getLogRecString(msg), curStateInfo.state, orgState);
                     } else {
                         mLogRecords.add(msg, mSm.getLogRecString(msg), null, null);
                     }
@@ -1019,8 +1013,8 @@ public class StateMachine {
          */
         private final void invokeEnterMethods(int stateStackEnteringIndex, boolean resume) {
             for (int i = stateStackEnteringIndex; i <= mStateStackTopIndex; i++) {
-                onStateChanged(mStateStack[i].state);
                 if (!resume) {
+                    onStateChanged(mStateStack[i].state);
                     mStateStack[i].state.enter();
                 }
                 mStateStack[i].state.resume();
@@ -1182,8 +1176,7 @@ public class StateMachine {
         /** @see StateMachine#transitionTo(IState) */
         private final void transitionTo(IState destState) {
             mDestState = (State) destState;
-            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to "
-                    + mDestState.getName());
+            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to " + mDestState.getName());
         }
 
         /** @see StateMachine#deferMessage(Message) */
@@ -1387,8 +1380,7 @@ public class StateMachine {
      *            that couldn't be handled.
      */
     protected void unhandledMessage(Message msg) {
-        log.e(mName + " was not able to handle "
-                + mSmHandler.mConverter.messageWhatToString(msg.what));
+        log.e(mName + " was not able to handle " + mSmHandler.mConverter.messageWhatToString(msg.what));
     }
 
     /**
