@@ -821,16 +821,17 @@ public class StateMachine {
                 /** Initial one time path. */
                 mIsConstructionCompleted = true;
                 boolean resume = msg.arg1 == 1;
-                invokeEnterMethods(0, resume);
+                // provide init cmd message for now. This should never be used!
+                invokeEnterMethods(0, resume, mMsg);
             } else throw new RuntimeException("StateMachine.handleMessage: "
                     + "The start method not called, received msg: " + msg);
-            performTransitions();
+            performTransitions(msg);
         }
 
         /**
          * Do any transitions
          */
-        private void performTransitions() {
+        private void performTransitions(Message reason) {
             /**
              * If transitionTo has been called, exit and then enter the
              * appropriate states. We loop on this to allow enter and exit
@@ -851,9 +852,9 @@ public class StateMachine {
                  * methods then the enter methods.
                  */
                 StateInfo commonStateInfo = setupTempStateStackWithStatesToEnter(destState);
-                invokeExitMethods(commonStateInfo);
+                invokeExitMethods(commonStateInfo, reason);
                 int stateStackEnteringIndex = moveTempStateStackToStateStack();
-                invokeEnterMethods(stateStackEnteringIndex, false);
+                invokeEnterMethods(stateStackEnteringIndex, false, reason);
 
                 /**
                  * Since we have transitioned to a new state we need to have any
@@ -994,10 +995,10 @@ public class StateMachine {
          * Call the exit method for each state from the top of stack up to the
          * common ancestor state.
          */
-        private final void invokeExitMethods(StateInfo commonStateInfo) {
+        private final void invokeExitMethods(StateInfo commonStateInfo, Message reason) {
             while (mStateStackTopIndex >= 0 && mStateStack[mStateStackTopIndex] != commonStateInfo) {
                 State curState = mStateStack[mStateStackTopIndex].state;
-                curState.exit();
+                curState.exit(reason);
                 mStateStack[mStateStackTopIndex].active = false;
                 mStateStackTopIndex -= 1;
             }
@@ -1011,11 +1012,11 @@ public class StateMachine {
          *            true if state machine is resuming from hibernation. In
          *            this case {@link IState#enter()} will not be invoked
          */
-        private final void invokeEnterMethods(int stateStackEnteringIndex, boolean resume) {
+        private final void invokeEnterMethods(int stateStackEnteringIndex, boolean resume, Message reason) {
             for (int i = stateStackEnteringIndex; i <= mStateStackTopIndex; i++) {
                 if (!resume) {
                     onStateChanged(mStateStack[i].state);
-                    mStateStack[i].state.enter();
+                    mStateStack[i].state.enter(reason);
                 }
                 mStateStack[i].state.resume();
                 mStateStack[i].active = true;

@@ -6,7 +6,7 @@ public abstract class ComplexTransition extends State {
     abstract public void performComplexTransition();
 
     @Override
-    public final void enter() {
+    public final void enter(Message reason) {
         performComplexTransition();
     }
 
@@ -21,7 +21,7 @@ public abstract class ComplexTransition extends State {
     }
 
     @Override
-    public final void exit() {
+    public final void exit(Message reason) {
         // nothing to do
     }
 }

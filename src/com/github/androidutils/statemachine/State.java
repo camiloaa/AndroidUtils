@@ -37,7 +37,7 @@ public class State implements IState {
      * @see com.android.internal.util.IState#enter()
      */
     @Override
-    public void enter() {
+    public void enter(Message reason) {
     }
 
     @Override
@@ -51,7 +51,7 @@ public class State implements IState {
      * @see com.android.internal.util.IState#exit()
      */
     @Override
-    public void exit() {
+    public void exit(Message reason) {
     }
 
     /*
