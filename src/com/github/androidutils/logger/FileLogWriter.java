@@ -9,25 +9,23 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.github.androidutils.logger.Logger.LogLevel;
 import com.github.androidutils.logger.Logger.LogWriter;
 
 public class FileLogWriter implements LogWriter {
-    private static final String DEFAULT_LOGS_DIRECTORY = "logs";
     private final DateFormat df;
     private final DateFormat dtf;
-    private final String logDirectory;
+    private final boolean useSeparateFileForEachDay;
+    private final Context context;
 
-    public FileLogWriter() {
-        this(DEFAULT_LOGS_DIRECTORY);
-    }
-
-    public FileLogWriter(String logDirectory) {
+    public FileLogWriter(Context context, boolean useSeparateFileForEachDay) {
         df = DateFormat.getDateInstance();
         dtf = DateFormat.getDateTimeInstance();
-        this.logDirectory = "/sdcard/" + logDirectory + "/";
+        this.useSeparateFileForEachDay = useSeparateFileForEachDay;
+        this.context = context;
     }
 
     @Override
@@ -39,11 +37,12 @@ public class FileLogWriter implements LogWriter {
     public void write(LogLevel level, String tag, String message, Throwable throwable) {
         Calendar today = Calendar.getInstance();
         String date = df.format(today.getTime());
-        File direct = new File(logDirectory);
-        if (!direct.exists()) {
-            direct.mkdir();
+        final File logFile;
+        if (useSeparateFileForEachDay) {
+            logFile = new File(context.getFilesDir(), date + "_applog.log");
+        } else {
+            logFile = new File(context.getFilesDir(), "applog.log");
         }
-        final File logFile = new File(logDirectory + date + "_log.txt");
         if (!logFile.exists()) {
             try {
                 logFile.createNewFile();
