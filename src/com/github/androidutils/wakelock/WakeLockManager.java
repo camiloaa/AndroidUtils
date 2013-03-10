@@ -60,7 +60,7 @@ public class WakeLockManager {
         wakeLocks = new CopyOnWriteArrayList<PowerManager.WakeLock>();
         log = logger;
         if (debug && logger.getLevel(this.getClass()) == null) {
-            logger.setLogLevel(getClass(), LogLevel.DEBUG);
+            logger.setLogLevel(getClass(), LogLevel.DBG);
         }
     }
 

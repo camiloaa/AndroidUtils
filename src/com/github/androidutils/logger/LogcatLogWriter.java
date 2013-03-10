@@ -8,15 +8,15 @@ public class LogcatLogWriter implements Logger.LogWriter {
     @Override
     public void write(LogLevel level, String tag, String message) {
         switch (level) {
-        case INFO:
+        case INF:
             Log.i(tag, message);
             break;
 
-        case DEBUG:
+        case DBG:
             Log.d(tag, message);
             break;
 
-        case WARN:
+        case WRN:
             Log.w(tag, message);
             break;
 
@@ -32,15 +32,15 @@ public class LogcatLogWriter implements Logger.LogWriter {
     @Override
     public void write(LogLevel level, String tag, String message, Throwable e) {
         switch (level) {
-        case INFO:
+        case INF:
             Log.i(tag, message, e);
             break;
 
-        case DEBUG:
+        case DBG:
             Log.d(tag, message, e);
             break;
 
-        case WARN:
+        case WRN:
             Log.w(tag, message, e);
             break;
 

@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -22,8 +23,9 @@ public class FileLogWriter implements LogWriter {
     private final Context context;
 
     public FileLogWriter(Context context, boolean useSeparateFileForEachDay) {
-        df = DateFormat.getDateInstance();
-        dtf = DateFormat.getDateTimeInstance();
+        df = new SimpleDateFormat("yyyy-MM-dd");
+        dtf = new SimpleDateFormat("dd-MM HH:mm:ss");
+
         this.useSeparateFileForEachDay = useSeparateFileForEachDay;
         this.context = context;
     }

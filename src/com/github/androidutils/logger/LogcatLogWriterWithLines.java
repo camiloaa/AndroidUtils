@@ -9,15 +9,15 @@ public class LogcatLogWriterWithLines implements Logger.LogWriter {
     public void write(LogLevel level, String tag, String message) {
         message = addLineToMessage(message);
         switch (level) {
-        case INFO:
+        case INF:
             Log.i(tag, message);
             break;
 
-        case DEBUG:
+        case DBG:
             Log.d(tag, message);
             break;
 
-        case WARN:
+        case WRN:
             Log.w(tag, message);
             break;
 
@@ -35,15 +35,15 @@ public class LogcatLogWriterWithLines implements Logger.LogWriter {
 
         message = addLineToMessage(message);
         switch (level) {
-        case INFO:
+        case INF:
             Log.i(tag, message, e);
             break;
 
-        case DEBUG:
+        case DBG:
             Log.d(tag, message, e);
             break;
 
-        case WARN:
+        case WRN:
             Log.w(tag, message, e);
             break;
 

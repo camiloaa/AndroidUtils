@@ -14,7 +14,7 @@ public class Logger {
     private static final boolean DBG = false;
 
     public enum LogLevel {
-        ERR, WARN, DEBUG, INFO
+        ERR, WRN, DBG, INF
     }
 
     /**
@@ -97,8 +97,8 @@ public class Logger {
 
     /**
      * Logs the message if configured log level for the class is above requested
-     * log level. If configured {@link LogLevel} is {@link LogLevel#WARN}, only
-     * logs with {@link LogLevel#ERR} and {@link LogLevel#WARN} will be shown.
+     * log level. If configured {@link LogLevel} is {@link LogLevel#WRN}, only
+     * logs with {@link LogLevel#ERR} and {@link LogLevel#WRN} will be shown.
      * 
      * @param logLevel
      * @param message
@@ -115,7 +115,7 @@ public class Logger {
         LogLevel configuredLogLevel = mLogLevels.get(logClass);
 
         if (configuredLogLevel == null) {
-            configuredLogLevel = LogLevel.DEBUG;
+            configuredLogLevel = LogLevel.DBG;
             mLogLevels.put(logClass, configuredLogLevel);
             final String string = "no LogLevel was found for " + logClass;
             Log.w(TAG, string);
@@ -132,11 +132,11 @@ public class Logger {
     }
 
     public void d(String message) {
-        sInstance.logIfApplicable(LogLevel.DEBUG, message, null);
+        sInstance.logIfApplicable(LogLevel.DBG, message, null);
     }
 
     public void w(String message) {
-        sInstance.logIfApplicable(LogLevel.WARN, message, null);
+        sInstance.logIfApplicable(LogLevel.WRN, message, null);
     }
 
     public void e(String message) {
