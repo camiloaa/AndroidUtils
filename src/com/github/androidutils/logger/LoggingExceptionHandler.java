@@ -20,8 +20,7 @@ public class LoggingExceptionHandler implements UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
-        logger.e("Unhandled exception in " + thread.toString(), ex);
+        logger.e("on " + thread.getName() + ": " + ex.getMessage());
         previousExceptionHandler.uncaughtException(thread, ex);
     }
-
 }
