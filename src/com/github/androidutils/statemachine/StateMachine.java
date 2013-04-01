@@ -945,7 +945,7 @@ public class StateMachine {
             message.arg1 = resume ? 1 : 0;
             sendMessageAtFrontOfQueue(message);
 
-            log.d("completed");
+            log.d("completed construction of " + mSm.getName());
             // TODO optional hierarchu dump
         }
 
@@ -957,7 +957,8 @@ public class StateMachine {
         private final void processMsg(Message msg) {
             StateInfo curStateInfo = mStateStack[mStateStackTopIndex];
             // TODO handled/not handled
-            log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName());
+            log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName() + " of "
+                    + mSm.getName());
 
             if (isQuit(msg)) {
                 transitionTo(mQuittingState);
@@ -974,7 +975,8 @@ public class StateMachine {
                         mSm.unhandledMessage(msg);
                         break;
                     }
-                    log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName());
+                    log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName() + " of "
+                            + mSm.getName());
                 }
 
                 /**
@@ -1034,7 +1036,7 @@ public class StateMachine {
              */
             for (int i = mDeferredMessages.size() - 1; i >= 0; i--) {
                 Message curMsg = mDeferredMessages.get(i);
-                log.d(mConverter.messageWhatToString(curMsg.what));
+                log.d(mConverter.messageWhatToString(curMsg.what) + " in " + mSm.getName());
                 sendMessageAtFrontOfQueue(curMsg);
             }
             mDeferredMessages.clear();
@@ -1177,12 +1179,13 @@ public class StateMachine {
         /** @see StateMachine#transitionTo(IState) */
         private final void transitionTo(IState destState) {
             mDestState = (State) destState;
-            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to " + mDestState.getName());
+            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to " + mDestState.getName() + " of "
+                    + mSm.getName());
         }
 
         /** @see StateMachine#deferMessage(Message) */
         private final void deferMessage(Message msg) {
-            log.d(mConverter.messageWhatToString(msg.what));
+            log.d(mConverter.messageWhatToString(msg.what) + " in " + mSm.getName());
 
             /* Copy the "msg" to "newMsg" as "msg" will be recycled */
             Message newMsg = obtainMessage();
