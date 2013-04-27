@@ -1381,6 +1381,30 @@ public class StateMachine {
     }
 
     /**
+     * transition to destination state. Upon returning from processMessage the
+     * current state's exit will be executed and upon the next message arriving
+     * destState.enter will be invoked.
+     * 
+     * this function can also be called inside the enter function of the
+     * previous transition target, but the behavior is undefined when it is
+     * called mid-way through a previous transition (for example, calling this
+     * in the enter() routine of a intermediate node when the current transition
+     * target is one of the nodes descendants).
+     * 
+     * @param destState
+     *            will be the state that receives the next message.
+     */
+    protected final void transitionTo(Class<? extends IState> destState) {
+        for (IState state : getStates()) {
+            if (state.getClass().equals(destState)) {
+                mSmHandler.transitionTo(state);
+                return;
+            }
+        }
+        throw new RuntimeException("State not found!");
+    }
+
+    /**
      * transition to halt state. Upon returning from processMessage we will exit
      * all current states, execute the onHalting() method and then for all
      * subsequent messages haltedProcessMessage will be called.
