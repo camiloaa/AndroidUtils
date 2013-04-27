@@ -811,6 +811,18 @@ public class StateMachine {
          */
         @Override
         public final void handleMessage(Message msg) {
+            MessageObjectContainer container = null;
+            if (msg.obj instanceof MessageObjectContainer) {
+                container = (MessageObjectContainer) msg.obj;
+                msg.obj = container.object;
+            }
+            handleRepackedMessage(msg);
+            if (container != null) {
+                container.callback.sendToTarget();
+            }
+        }
+
+        private void handleRepackedMessage(Message msg) {
             /** Save the current message */
             mMsg = msg;
 
@@ -1243,6 +1255,20 @@ public class StateMachine {
             onStateChangedListeners.add(onStateChangedListener);
         }
 
+        public void sendMessage(Message message, Message callback) {
+            // we have to send the given message and pack the callback into it
+            // along with the msg.obj
+            MessageObjectContainer container = new MessageObjectContainer();
+            container.object = message.obj;
+            container.callback = callback;
+            message.obj = container;
+            message.sendToTarget();
+        }
+
+        private class MessageObjectContainer {
+            public Message callback;
+            public Object object;
+        }
     }
 
     private SmHandler mSmHandler;
@@ -1666,6 +1692,22 @@ public class StateMachine {
      */
     protected final void sendMessageAtFrontOfQueue(Message msg) {
         mSmHandler.sendMessageAtFrontOfQueue(msg);
+    }
+
+    public final void sendMessage(Message message, Message callback) {
+        mSmHandler.sendMessage(message, callback);
+    }
+
+    public final void sendMessage(int what, Message callback) {
+        if (mSmHandler == null) return;
+        Message message = mSmHandler.obtainMessage(what);
+        mSmHandler.sendMessage(message, callback);
+    }
+
+    public final void sendMessage(int what, Object obj, Message callback) {
+        Message message = mSmHandler.obtainMessage(what);
+        message.obj = obj;
+        mSmHandler.sendMessage(message, callback);
     }
 
     /**
