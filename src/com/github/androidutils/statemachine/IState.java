@@ -38,7 +38,7 @@ public interface IState {
     /**
      * Called when a state is entered.
      */
-    void enter(Message reason);
+    void enter();
 
     /**
      * Called when state is resumed. Like onResume()
@@ -48,7 +48,7 @@ public interface IState {
     /**
      * Called when a state is exited.
      */
-    void exit(Message reason);
+    void exit();
 
     /**
      * Called when a message is to be processed by the state machine.
