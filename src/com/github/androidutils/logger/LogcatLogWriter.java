@@ -52,4 +52,17 @@ public class LogcatLogWriter implements Logger.LogWriter {
             break;
         }
     }
+
+    private LogcatLogWriter() {
+
+    }
+
+    private static volatile LogcatLogWriter sInstance;
+
+    public static synchronized LogcatLogWriter getInstance() {
+        if (sInstance == null) {
+            sInstance = new LogcatLogWriter();
+        }
+        return sInstance;
+    }
 }

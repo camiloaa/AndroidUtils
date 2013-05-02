@@ -22,7 +22,7 @@ public class FileLogWriter implements LogWriter {
     private final boolean useSeparateFileForEachDay;
     private final Context context;
 
-    public FileLogWriter(Context context, boolean useSeparateFileForEachDay) {
+    private FileLogWriter(Context context, boolean useSeparateFileForEachDay) {
         df = new SimpleDateFormat("yyyy-MM-dd");
         dtf = new SimpleDateFormat("dd-MM HH:mm:ss");
 
@@ -78,5 +78,14 @@ public class FileLogWriter implements LogWriter {
         } catch (final IOException e) {
             Log.d(getClass().getName(), "Writing failed - " + e.getMessage());
         }
+    }
+
+    private static volatile FileLogWriter sInstance;
+
+    public static synchronized FileLogWriter getInstance(Context context, boolean useSeparateFileForEachDay) {
+        if (sInstance == null) {
+            sInstance = new FileLogWriter(context, useSeparateFileForEachDay);
+        }
+        return sInstance;
     }
 }

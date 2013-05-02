@@ -74,4 +74,17 @@ public class LogcatLogWriterWithLines implements Logger.LogWriter {
         sb.append(string);
         return sb.toString();
     }
+
+    private LogcatLogWriterWithLines() {
+
+    }
+
+    private static volatile LogcatLogWriterWithLines sInstance;
+
+    public static synchronized LogcatLogWriterWithLines getInstance() {
+        if (sInstance == null) {
+            sInstance = new LogcatLogWriterWithLines();
+        }
+        return sInstance;
+    }
 }

@@ -1,9 +1,8 @@
 package com.github.androidutils.logger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import android.util.Log;
 
@@ -32,9 +31,9 @@ public class Logger {
 
     private final Map<String, LogLevel> mLogLevels;
 
-    private static Logger sInstance;
+    private static volatile Logger sInstance;
 
-    public static Logger getDefaultLogger() {
+    public static synchronized Logger getDefaultLogger() {
         if (sInstance == null) {
             sInstance = new Logger();
         }
@@ -42,22 +41,22 @@ public class Logger {
     }
 
     @Deprecated
-    public static Logger init() {
+    public static synchronized Logger init() {
         if (sInstance == null) {
             sInstance = new Logger();
         }
         return sInstance;
     }
 
-    private final List<LogWriter> writers;
+    private final CopyOnWriteArrayList<LogWriter> writers;
 
-    public Logger() {
-        mLogLevels = new HashMap<String, Logger.LogLevel>();
-        writers = new ArrayList<LogWriter>();
+    private Logger() {
+        mLogLevels = new ConcurrentHashMap<String, Logger.LogLevel>();
+        writers = new CopyOnWriteArrayList<LogWriter>();
     }
 
     public void addLogWriter(LogWriter logWriter) {
-        writers.add(logWriter);
+        writers.addIfAbsent(logWriter);
     }
 
     public void removeLogWriter(LogWriter logWriter) {
