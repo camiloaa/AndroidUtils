@@ -40,7 +40,7 @@ public class WakeLockManager {
     private static final String TAG = "WakeLockManager";
     private final Logger log;
 
-    private static WakeLockManager sInstance;
+    private static volatile WakeLockManager sInstance;
 
     private final CopyOnWriteArrayList<WakeLock> wakeLocks;
     private final PowerManager pm;
@@ -51,8 +51,14 @@ public class WakeLockManager {
     }
 
     public static void init(Context context, Logger logger, boolean debug) {
-        if (sInstance != null) throw new RuntimeException("Attempt to reinitalize a " + TAG);
-        sInstance = new WakeLockManager(context, logger, debug);
+        if (sInstance != null) {
+            logger.w("Attempt to reinitalize");
+            WakeLockManager oldManager = sInstance;
+            sInstance = new WakeLockManager(context, logger, debug);
+            sInstance.wakeLocks.addAllAbsent(oldManager.wakeLocks);
+        } else {
+            sInstance = new WakeLockManager(context, logger, debug);
+        }
     }
 
     private WakeLockManager(Context context, Logger logger, boolean debug) {
