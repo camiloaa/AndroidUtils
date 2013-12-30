@@ -21,9 +21,10 @@ public class IntentEventBus implements IEventBus {
         this.context = context;
     }
 
+    @Override
     public void post(Parcelable event) {
-        Intent intent = new Intent(ACTION_EVENT);
+        Intent intent = new Intent(ACTION_EVENT + event.getClass().getSimpleName());
         intent.putExtra(EXTRA_EVENT, event);
-        context.sendBroadcast(intent);
+        context.sendStickyBroadcast(intent);
     }
 }
