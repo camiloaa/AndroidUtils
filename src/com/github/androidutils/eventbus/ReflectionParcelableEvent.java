@@ -1,6 +1,7 @@
 package com.github.androidutils.eventbus;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,6 +17,9 @@ public class ReflectionParcelableEvent implements Parcelable {
                         .newInstance();
                 List<Field> fields = Arrays.asList(event.getClass().getDeclaredFields());
                 for (Field field : fields) {
+                    if (Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
                     try {
                         if (Parcelable.class.isAssignableFrom(field.getType())) {
                             field.set(event, source.readParcelable(ClassLoader.getSystemClassLoader()));
@@ -52,6 +56,9 @@ public class ReflectionParcelableEvent implements Parcelable {
         dest.writeString(this.getClass().getName());
         List<Field> fields = Arrays.asList(this.getClass().getDeclaredFields());
         for (Field field : fields) {
+            if (Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
             try {
                 if (Parcelable.class.isAssignableFrom(field.getType())) {
                     dest.writeParcelable((Parcelable) field.get(this), flags);
