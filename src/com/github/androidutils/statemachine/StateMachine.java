@@ -700,8 +700,6 @@ public class StateMachine {
 
         private final Logger log;
 
-        private IMessageWhatToStringConverter mConverter = new DefaulftConverter();
-
         /** The SmHandler object, identifies that message is internal */
         private static final Object mSmHandlerObj = new Object();
 
@@ -774,6 +772,8 @@ public class StateMachine {
         private final ArrayList<Message> mDeferredMessages = new ArrayList<Message>();
 
         private final CopyOnWriteArrayList<IOnStateChangedListener> onStateChangedListeners = new CopyOnWriteArrayList<IOnStateChangedListener>();
+
+        private MsgLogger msgLogger;
 
         /**
          * State entered when transitionToHaltingState is called.
@@ -968,8 +968,7 @@ public class StateMachine {
         private final void processMsg(Message msg) {
             StateInfo curStateInfo = mStateStack[mStateStackTopIndex];
             // TODO handled/not handled
-            log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName() + " of "
-                    + mSm.getName());
+            log.d('[' + mSm.getName() + "] " + curStateInfo.state.getName() + " <- " + msgLogger.toString(msg));
 
             if (isQuit(msg)) {
                 transitionTo(mQuittingState);
@@ -986,8 +985,7 @@ public class StateMachine {
                         mSm.unhandledMessage(msg);
                         break;
                     }
-                    log.d(mConverter.messageWhatToString(msg.what) + " in " + curStateInfo.state.getName() + " of "
-                            + mSm.getName());
+                    log.d('[' + mSm.getName() + "] \\" + curStateInfo.state.getName());
                 }
 
                 /**
@@ -1047,7 +1045,7 @@ public class StateMachine {
              */
             for (int i = mDeferredMessages.size() - 1; i >= 0; i--) {
                 Message curMsg = mDeferredMessages.get(i);
-                log.d(mConverter.messageWhatToString(curMsg.what) + " in " + mSm.getName());
+                log.d(msgLogger.toString(curMsg) + " in " + mSm.getName());
                 sendMessageAtFrontOfQueue(curMsg);
             }
             mDeferredMessages.clear();
@@ -1180,6 +1178,13 @@ public class StateMachine {
             this.log = log;
             addState(mHaltingState, null);
             addState(mQuittingState, null);
+            final IMessageWhatToStringConverter whatToStringConverter = new DefaulftConverter();
+            this.msgLogger = new MsgLogger() {
+                @Override
+                public String toString(Message message) {
+                    return whatToStringConverter.messageWhatToString(message.what);
+                }
+            };
         }
 
         /** @see StateMachine#setInitialState(State) */
@@ -1190,13 +1195,13 @@ public class StateMachine {
         /** @see StateMachine#transitionTo(IState) */
         private final void transitionTo(IState destState) {
             mDestState = (State) destState;
-            log.d("from " + mStateStack[mStateStackTopIndex].state.getName() + " to " + mDestState.getName() + " of "
-                    + mSm.getName());
+            log.d("[" + mSm.getName() + "] " + mStateStack[mStateStackTopIndex].state.getName() + " -> "
+                    + mDestState.getName());
         }
 
         /** @see StateMachine#deferMessage(Message) */
         private final void deferMessage(Message msg) {
-            log.d(mConverter.messageWhatToString(msg.what) + " in " + mSm.getName());
+            log.d(msgLogger.toString(msg) + " in " + mSm.getName());
 
             /* Copy the "msg" to "newMsg" as "msg" will be recycled */
             Message newMsg = obtainMessage();
@@ -1231,8 +1236,18 @@ public class StateMachine {
         }
 
         /** @see StateMachine#setMessageWhatToStringConverter(IMessageWhatToStringConverter) */
-        private final void setMessageWhatToStringConverter(IMessageWhatToStringConverter converter) {
-            mConverter = converter;
+        private final void setMessageWhatToStringConverter(final IMessageWhatToStringConverter converter) {
+            setMessageLogger(new MsgLogger() {
+                @Override
+                public String toString(Message message) {
+                    // TODO Auto-generated method stub
+                    return converter.messageWhatToString(message.what);
+                }
+            });
+        }
+
+        public void setMessageLogger(MsgLogger msgLogger) {
+            this.msgLogger = msgLogger;
         }
 
         /**
@@ -1433,7 +1448,7 @@ public class StateMachine {
      *            that couldn't be handled.
      */
     protected void unhandledMessage(Message msg) {
-        log.e(mName + " was not able to handle " + mSmHandler.mConverter.messageWhatToString(msg.what));
+        log.e(mName + " was not able to handle " + mSmHandler.msgLogger.toString(msg));
     }
 
     /**
@@ -1786,11 +1801,23 @@ public class StateMachine {
         mSmHandler.setDbg(dbg);
     }
 
+    /**
+     * @deprecated use {@link #setMessageLogger(MsgLogger)}
+     * @param converter
+     */
+    @Deprecated
     public void setMessageWhatToStringConverter(IMessageWhatToStringConverter converter) {
         // mSmHandler can be null if the state machine has quit.
         if (mSmHandler == null) return;
 
         mSmHandler.setMessageWhatToStringConverter(converter);
+    }
+
+    public void setMessageLogger(MsgLogger msgLogger) {
+        // mSmHandler can be null if the state machine has quit.
+        if (mSmHandler == null) return;
+
+        mSmHandler.setMessageLogger(msgLogger);
     }
 
     /**
