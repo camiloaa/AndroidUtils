@@ -3,6 +3,7 @@ package com.github.androidutils.eventbus;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import android.os.Parcel;
@@ -80,7 +81,23 @@ public class ReflectionParcelableEvent implements Parcelable {
         StringBuilder sb = new StringBuilder();
         sb.append(getClass().getSimpleName()).append('[');
         List<Field> fields = Arrays.asList(this.getClass().getDeclaredFields());
-        sb.append(fields);
+
+        for (Iterator<Field> iterator = fields.iterator(); iterator.hasNext();) {
+            Field field = iterator.next();
+            sb.append(field.getName()).append(' ');
+            try {
+                sb.append(field.get(this));
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            } else {
+                sb.append(']');
+            }
+        }
         return sb.toString();
     }
 }
