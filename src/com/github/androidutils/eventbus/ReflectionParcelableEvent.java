@@ -2,6 +2,7 @@ package com.github.androidutils.eventbus;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -16,7 +17,8 @@ public class ReflectionParcelableEvent implements Parcelable {
             try {
                 final ReflectionParcelableEvent event = (ReflectionParcelableEvent) Class.forName(source.readString())
                         .newInstance();
-                List<Field> fields = Arrays.asList(event.getClass().getDeclaredFields());
+                List<Field> fields = findAllFields(event);
+
                 for (Field field : fields) {
                     if (Modifier.isStatic(field.getModifiers())) {
                         continue;
@@ -37,7 +39,7 @@ public class ReflectionParcelableEvent implements Parcelable {
                 }
                 return event;
             } catch (Exception e) {
-                throw new RuntimeException();
+                throw new RuntimeException(e);
             }
         }
 
@@ -55,7 +57,7 @@ public class ReflectionParcelableEvent implements Parcelable {
     @Override
     public void writeToParcel(final Parcel dest, final int flags) {
         dest.writeString(this.getClass().getName());
-        List<Field> fields = Arrays.asList(this.getClass().getDeclaredFields());
+        List<Field> fields = findAllFields(this);
         for (Field field : fields) {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
@@ -99,5 +101,18 @@ public class ReflectionParcelableEvent implements Parcelable {
             }
         }
         return sb.toString();
+    }
+
+    private static List<Field> findAllFields(final Object object) {
+        List<Field> fields = new ArrayList<Field>(Arrays.asList(object.getClass().getDeclaredFields()));
+        Class<?> current = object.getClass();
+        while (current.getSuperclass() != null) { // we don't want to
+                                                  // process
+                                                  // Object.class
+            // do something with current's fields
+            current = current.getSuperclass();
+            fields.addAll(Arrays.asList(current.getDeclaredFields()));
+        }
+        return fields;
     }
 }
