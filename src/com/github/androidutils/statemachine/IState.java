@@ -16,7 +16,7 @@
 
 package com.github.androidutils.statemachine;
 
-import android.os.Message;
+import com.github.androidutils.handler.IMessage;
 
 /**
  * {@hide}
@@ -64,7 +64,7 @@ public interface IState {
      * @return HANDLED if processing has completed and NOT_HANDLED if the
      *         message wasn't processed.
      */
-    boolean processMessage(Message msg);
+    boolean processMessage(IMessage msg);
 
     /**
      * Name of State for debugging purposes.

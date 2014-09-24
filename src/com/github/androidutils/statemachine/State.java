@@ -16,7 +16,7 @@
 
 package com.github.androidutils.statemachine;
 
-import android.os.Message;
+import com.github.androidutils.handler.IMessage;
 
 /**
  * {@hide}
@@ -60,7 +60,7 @@ public class State implements IState {
      * @see com.android.internal.util.IState#processMessage(android.os.Message)
      */
     @Override
-    public boolean processMessage(Message msg) {
+    public boolean processMessage(IMessage msg) {
         return false;
     }
 

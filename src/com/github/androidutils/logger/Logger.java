@@ -117,9 +117,9 @@ public class Logger {
             configuredLogLevel = LogLevel.DBG;
             mLogLevels.put(logClass, configuredLogLevel);
             final String string = "no LogLevel was found for " + logClass;
-            Log.w(TAG, string);
+            // Log.w(TAG, string);
             final String string2 = "Adding " + logClass + " with LogLevel " + configuredLogLevel.toString();
-            Log.d(TAG, string2);
+            // Log.d(TAG, string2);
         }
         final boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
         if (shouldBeLogged) {

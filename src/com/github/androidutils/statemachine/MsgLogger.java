@@ -1,7 +1,7 @@
 package com.github.androidutils.statemachine;
 
-import android.os.Message;
+import com.github.androidutils.handler.IMessage;
 
 public interface MsgLogger {
-    public String toString(Message message);
+    public String toString(IMessage message);
 }
