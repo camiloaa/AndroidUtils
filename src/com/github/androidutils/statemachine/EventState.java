@@ -1,7 +1,6 @@
 package com.github.androidutils.statemachine;
 
-import android.os.Message;
-
+import com.github.androidutils.handler.IMessage;
 import com.google.common.eventbus.DeadEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -22,10 +21,10 @@ public class EventState extends State {
     }
 
     @Override
-    public boolean processMessage(Message msg) {
+    public boolean processMessage(IMessage msg) {
         handled = true;
-        if (msg.obj != null) {
-            bus.post(msg.obj);
+        if (msg.obj() != null) {
+            bus.post(msg.obj());
             return handled;
         } else return false;
     }

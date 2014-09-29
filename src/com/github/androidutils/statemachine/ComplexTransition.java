@@ -1,6 +1,6 @@
 package com.github.androidutils.statemachine;
 
-import android.os.Message;
+import com.github.androidutils.handler.IMessage;
 
 public abstract class ComplexTransition extends State {
     abstract public void performComplexTransition();
@@ -16,7 +16,7 @@ public abstract class ComplexTransition extends State {
     }
 
     @Override
-    public final boolean processMessage(Message msg) {
+    public final boolean processMessage(IMessage msg) {
         throw new RuntimeException("performComplexTransition() must transit immediately");
     }
 

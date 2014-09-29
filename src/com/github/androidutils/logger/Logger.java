@@ -50,6 +50,8 @@ public class Logger {
 
     private final CopyOnWriteArrayList<LogWriter> writers;
 
+    private volatile int stackTraceOffset = 5;
+
     private Logger() {
         mLogLevels = new ConcurrentHashMap<String, Logger.LogLevel>();
         writers = new CopyOnWriteArrayList<LogWriter>();
@@ -63,12 +65,18 @@ public class Logger {
         writers.remove(logWriter);
     }
 
+    public void setStackTraceOffset(int offset) {
+        stackTraceOffset = offset;
+    }
+
     /**
      * For a given logClass only messages with logLevel above will be logged.
      * 
      * @param logClass
      * @param logLevel
+     * @deprecated
      */
+    @Deprecated
     public void setLogLevel(Class<?> logClass, LogLevel logLevel) {
         final String simpleName = logClass.getSimpleName();
         mLogLevels.put(simpleName, logLevel);
@@ -83,13 +91,21 @@ public class Logger {
      * 
      * @param logClass
      * @param logLevel
+     * @deprecated
      */
+    @Deprecated
     public void setLogLevel(String simpleName, LogLevel logLevel) {
         mLogLevels.put(simpleName, logLevel);
         final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
         Log.d(TAG, string);
     }
 
+    /**
+     * @deprecated
+     * @param logClass
+     * @return
+     */
+    @Deprecated
     public LogLevel getLevel(Class<?> logClass) {
         return mLogLevels.get(logClass.getSimpleName());
     }
@@ -106,6 +122,7 @@ public class Logger {
         logIfApplicable(logLevel, message, null);
     }
 
+    @Deprecated
     private void logIfApplicable(LogLevel logLevel, String message, Throwable throwable) {
         final StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
         final String fileName = caller.getFileName();
@@ -147,7 +164,7 @@ public class Logger {
     }
 
     private String formatTag() {
-        final StackTraceElement caller = Thread.currentThread().getStackTrace()[5];
+        final StackTraceElement caller = Thread.currentThread().getStackTrace()[stackTraceOffset];
         final String fileName = caller.getFileName();
         final String logClass = fileName.substring(0, fileName.length() - 5);
         final String methodName = caller.getMethodName();

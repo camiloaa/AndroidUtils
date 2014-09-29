@@ -2,24 +2,23 @@ package com.github.androidutils.handler;
 
 public interface IMessage {
 
-    void setArg1(int i);
+    IMessage setWhat(int what);
 
-    void setObj(Object obj);
+    IMessage setArg1(int arg1);
 
-    Object obj();
+    IMessage setArg2(int arg2);
+
+    IMessage setObj(Object obj);
+
+    IMessage copyFrom(IMessage msg);
 
     void sendToTarget();
 
+    Object obj();
+
     int what();
-
-    void setArg2(int minute);
-
-    void setWhat(int change);
 
     int arg1();
 
     int arg2();
-
-    void copyFrom(IMessage msg);
-
 }

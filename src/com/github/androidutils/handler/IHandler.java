@@ -1,13 +1,12 @@
 package com.github.androidutils.handler;
 
-
 public interface IHandler {
 
     IMessage obtainMessage(int what, Object object);
 
     void sendMessageAtFrontOfQueue(IMessage message);
 
-    void sendMessage(IMessage obtainMessage);
+    void sendMessage(IMessage message);
 
     IMessage obtainMessage();
 
