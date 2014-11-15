@@ -1,17 +1,8 @@
 package com.github.androidutils.logger;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import android.util.Log;
-
 public class Logger {
-
-    private static final String TAG = Logger.class.getSimpleName();
-
-    private static final boolean DBG = false;
-
     public enum LogLevel {
         ERR, WRN, DBG, INF
     }
@@ -23,36 +14,18 @@ public class Logger {
      * 
      */
     public interface LogWriter {
-
         public void write(LogLevel level, String tag, String message);
 
         public void write(LogLevel level, String tag, String message, Throwable e);
     }
 
-    private final Map<String, LogLevel> mLogLevels;
-
-    private static volatile Logger sInstance;
-
-    public static synchronized Logger getDefaultLogger() {
-        if (sInstance == null) {
-            sInstance = new Logger();
-        }
-        return sInstance;
-    }
-
-    @Deprecated
-    public static synchronized Logger init() {
-        if (sInstance == null) {
-            sInstance = new Logger();
-        }
-        return sInstance;
-    }
-
     private final CopyOnWriteArrayList<LogWriter> writers;
 
-    private Logger() {
-        mLogLevels = new ConcurrentHashMap<String, Logger.LogLevel>();
+    private LogLevel logLevel;
+
+    public Logger() {
         writers = new CopyOnWriteArrayList<LogWriter>();
+        logLevel = LogLevel.DBG;
     }
 
     public void addLogWriter(LogWriter logWriter) {
@@ -66,32 +39,14 @@ public class Logger {
     /**
      * For a given logClass only messages with logLevel above will be logged.
      * 
-     * @param logClass
      * @param logLevel
      */
-    public void setLogLevel(Class<?> logClass, LogLevel logLevel) {
-        final String simpleName = logClass.getSimpleName();
-        mLogLevels.put(simpleName, logLevel);
-        if (DBG) {
-            final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
-            Log.d(TAG, string);
-        }
+    public void setLogLevel(LogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 
-    /**
-     * For a given simple name only messages with logLevel above will be logged.
-     * 
-     * @param logClass
-     * @param logLevel
-     */
-    public void setLogLevel(String simpleName, LogLevel logLevel) {
-        mLogLevels.put(simpleName, logLevel);
-        final String string = "Adding " + simpleName + " with LogLevel " + logLevel.toString();
-        Log.d(TAG, string);
-    }
-
-    public LogLevel getLevel(Class<?> logClass) {
-        return mLogLevels.get(logClass.getSimpleName());
+    public LogLevel getLevel() {
+        return logLevel;
     }
 
     /**
@@ -106,23 +61,10 @@ public class Logger {
         logIfApplicable(logLevel, message, null);
     }
 
-    private void logIfApplicable(LogLevel logLevel, String message, Throwable throwable) {
-        final StackTraceElement caller = Thread.currentThread().getStackTrace()[4];
-        final String fileName = caller.getFileName();
-        final String logClass = fileName.substring(0, fileName.length() - 5);
-
-        LogLevel configuredLogLevel = mLogLevels.get(logClass);
-
-        if (configuredLogLevel == null) {
-            configuredLogLevel = LogLevel.DBG;
-            mLogLevels.put(logClass, configuredLogLevel);
-            final String string = "no LogLevel was found for " + logClass;
-            Log.w(TAG, string);
-            final String string2 = "Adding " + logClass + " with LogLevel " + configuredLogLevel.toString();
-            Log.d(TAG, string2);
-        }
-        final boolean shouldBeLogged = logLevel.ordinal() <= configuredLogLevel.ordinal();
+    private void logIfApplicable(LogLevel requestedLogLevel, String message, Throwable throwable) {
+        final boolean shouldBeLogged = requestedLogLevel.ordinal() <= logLevel.ordinal();
         if (shouldBeLogged) {
+            // TODO cache tags! Use linenumber?
             final String formatTag = formatTag();
             for (final LogWriter writer : writers) {
                 writer.write(logLevel, formatTag, message, throwable);
@@ -131,22 +73,22 @@ public class Logger {
     }
 
     public void d(String message) {
-        sInstance.logIfApplicable(LogLevel.DBG, message, null);
+        logIfApplicable(LogLevel.DBG, message, null);
     }
 
     public void w(String message) {
-        sInstance.logIfApplicable(LogLevel.WRN, message, null);
+        logIfApplicable(LogLevel.WRN, message, null);
     }
 
     public void e(String message) {
-        sInstance.logIfApplicable(LogLevel.ERR, message, null);
+        logIfApplicable(LogLevel.ERR, message, null);
     }
 
     public void e(String message, Throwable throwable) {
-        sInstance.logIfApplicable(LogLevel.ERR, message, throwable);
+        logIfApplicable(LogLevel.ERR, message, throwable);
     }
 
-    private String formatTag() {
+    private static String formatTag() {
         final StackTraceElement caller = Thread.currentThread().getStackTrace()[5];
         final String fileName = caller.getFileName();
         final String logClass = fileName.substring(0, fileName.length() - 5);
@@ -154,4 +96,13 @@ public class Logger {
         final String tag = "[" + logClass + "." + methodName + "]";
         return tag;
     }
+
+    public static synchronized Logger getDefaultLogger() {
+        if (sDefaultLogger == null) {
+            sDefaultLogger = new Logger();
+        }
+        return sDefaultLogger;
+    }
+
+    private static volatile Logger sDefaultLogger;
 }

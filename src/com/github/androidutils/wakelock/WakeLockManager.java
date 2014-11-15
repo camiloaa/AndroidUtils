@@ -26,7 +26,6 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
 import com.github.androidutils.logger.Logger;
-import com.github.androidutils.logger.Logger.LogLevel;
 
 /**
  * Utility class to pass {@link WakeLock} objects with intents. It contains a
@@ -65,9 +64,6 @@ public class WakeLockManager {
         pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLocks = new CopyOnWriteArrayList<PowerManager.WakeLock>();
         log = logger;
-        if (debug && logger.getLevel(this.getClass()) == null) {
-            logger.setLogLevel(getClass(), LogLevel.DBG);
-        }
     }
 
     /**
