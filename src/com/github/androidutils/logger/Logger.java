@@ -61,30 +61,30 @@ public class Logger {
         logIfApplicable(logLevel, message, null);
     }
 
-    private void logIfApplicable(LogLevel requestedLogLevel, String message, Throwable throwable) {
+    private void logIfApplicable(LogLevel requestedLogLevel, Object message, Throwable throwable) {
         final boolean shouldBeLogged = requestedLogLevel.ordinal() <= logLevel.ordinal();
         if (shouldBeLogged) {
             // TODO cache tags! Use linenumber?
             final String formatTag = formatTag();
             for (final LogWriter writer : writers) {
-                writer.write(logLevel, formatTag, message, throwable);
+                writer.write(logLevel, formatTag, message != null ? message.toString() : "null", throwable);
             }
         }
     }
 
-    public void d(String message) {
+    public void d(Object message) {
         logIfApplicable(LogLevel.DBG, message, null);
     }
 
-    public void w(String message) {
+    public void w(Object message) {
         logIfApplicable(LogLevel.WRN, message, null);
     }
 
-    public void e(String message) {
+    public void e(Object message) {
         logIfApplicable(LogLevel.ERR, message, null);
     }
 
-    public void e(String message, Throwable throwable) {
+    public void e(Object message, Throwable throwable) {
         logIfApplicable(LogLevel.ERR, message, throwable);
     }
 

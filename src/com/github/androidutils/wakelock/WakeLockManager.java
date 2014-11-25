@@ -44,11 +44,13 @@ public class WakeLockManager {
     private final CopyOnWriteArrayList<WakeLock> wakeLocks;
     private final PowerManager pm;
 
+    @Deprecated
     public static WakeLockManager getWakeLockManager() {
         if (sInstance == null) throw new RuntimeException(TAG + " was not initialized");
         return sInstance;
     }
 
+    @Deprecated
     public static void init(Context context, Logger logger, boolean debug) {
         if (sInstance != null) {
             logger.w("Attempt to reinitalize");
@@ -60,7 +62,7 @@ public class WakeLockManager {
         }
     }
 
-    private WakeLockManager(Context context, Logger logger, boolean debug) {
+    public WakeLockManager(Context context, Logger logger, boolean debug) {
         pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         wakeLocks = new CopyOnWriteArrayList<PowerManager.WakeLock>();
         log = logger;
