@@ -12,7 +12,7 @@ public abstract class ComplexTransition extends State {
 
     @Override
     public final void resume() {
-        performComplexTransition();
+
     }
 
     @Override

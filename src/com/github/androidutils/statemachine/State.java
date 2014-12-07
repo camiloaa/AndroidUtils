@@ -41,6 +41,7 @@ public class State implements IState {
     }
 
     @Override
+    @Deprecated
     public void resume() {
 
     }
